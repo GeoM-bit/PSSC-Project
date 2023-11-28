@@ -18,7 +18,7 @@ namespace PSSC
 
             User user = new User()
             {
-                User_Id=7,
+                User_Id=4,
                 FirstName="Georgiana",
                 LastName="Matei"
             };
