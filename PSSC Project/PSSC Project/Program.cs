@@ -8,7 +8,7 @@ namespace PSSC
     {
         private static readonly Random random = new Random();
 
-        private static string ConnectionString = "Server=localhost\\SQLEXPRESS;Database=PSSC;Trusted_Connection=True;TrustServerCertificate=True";
+        private static string ConnectionString = "Server=localhost\\SQLEXPRESS;Database=PSSC2;Trusted_Connection=True;TrustServerCertificate=True";
 
         static async Task Main(string[] args)
         {
@@ -16,9 +16,9 @@ namespace PSSC
                                                .UseSqlServer(ConnectionString);
             ProductContext context = new ProductContext(dbContextBuilder.Options);
 
-            User user = new User()
+            UserDto user = new UserDto()
             {
-                User_Id=4,
+                UserId=4,
                 FirstName="Georgiana",
                 LastName="Matei"
             };
@@ -29,7 +29,7 @@ namespace PSSC
             var users = await context.Users.ToListAsync();
 
             foreach (var use in users)
-                Console.WriteLine(use.User_Id.ToString()+" "+use.FirstName.ToString()+" "+use.LastName.ToString());
+                Console.WriteLine(use.UserId.ToString()+" "+use.FirstName.ToString()+" "+use.LastName.ToString());
         }
     }
 }
