@@ -1,4 +1,6 @@
-﻿namespace PSSC_Project.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PSSC_Project.Models
 {
     public class UserDto
     {
@@ -7,7 +9,7 @@
         public string LastName { get; set; }
         public string? CardNumber { get; set; }
         public int? CVV { get; set; }
-        public DateOnly? CardExpiryDate { get; set; }
-        public float? Balance { get; set; }
+        public DateTime? CardExpiryDate { get; set; }
+        public Double? Balance { get; set; }
     }
 }

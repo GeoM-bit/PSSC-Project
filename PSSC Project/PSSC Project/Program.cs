@@ -8,7 +8,7 @@ namespace PSSC
     {
         private static readonly Random random = new Random();
 
-        private static string ConnectionString = "Server=localhost\\SQLEXPRESS;Database=PSSC2;Trusted_Connection=True;TrustServerCertificate=True";
+        private static string ConnectionString = "Server=RO-9X5DZY2\\SQLEXPRESS;Database=PSSC;Trusted_Connection=True;TrustServerCertificate=True";
 
         static async Task Main(string[] args)
         {
@@ -18,7 +18,6 @@ namespace PSSC
 
             UserDto user = new UserDto()
             {
-                UserId=4,
                 FirstName="Georgiana",
                 LastName="Matei"
             };
