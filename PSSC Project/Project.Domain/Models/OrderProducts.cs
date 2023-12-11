@@ -1,12 +1,4 @@
-﻿using LanguageExt;
-using LanguageExt.ClassInstances;
-using Project.Domain.Exceptions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using Project.Domain.Exceptions;
 
 namespace Project.Domain.Models
 {
@@ -25,13 +17,13 @@ namespace Project.Domain.Models
                 else
                 {
                     OrderProductsList.Clear();
-                    throw new InvalidOrderDeliveryAddress("Wrong Order Product: ProductName: " + product.name + " Quantity: " + product.quantity + " Price: " + product.price);
+                    throw new InvalidOrderDeliveryAddress("Wrong Order Product: ProductName: " + product.productName + " Quantity: " + product.quantity + " Price: " + product.price);
                 }
             }
         }
         private static bool IsValid(Product product)
         {
-            if(product.quantity > 0 && product.price > 0) 
+            if(product.quantity.Quantity > 0 && product.price.Price > 0) 
                 return true;
             else
                 return false;

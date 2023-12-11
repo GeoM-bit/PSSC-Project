@@ -1,14 +1,13 @@
 ﻿using LanguageExt;
-using LanguageExt.ClassInstances.Pred;
 using Project.Domain.Exceptions;
 using static LanguageExt.Prelude;
 
 namespace Project.Domain.Models
 {
-    public class OrderPrice
+    public class ProductPrice
     {
         public float Price { get; }
-        public OrderPrice(float price)
+        public ProductPrice(float price)
         {
             if (IsValid(price))
             {
@@ -22,25 +21,25 @@ namespace Project.Domain.Models
 
         private static bool IsValid(float value) => value > 0;
 
-        public static bool TryParse(float value, out OrderPrice orderPrice)
+        public static bool TryParse(float value, out ProductPrice ProductPrice)
         {
             bool isValid = false;
-            orderPrice = null;
+            ProductPrice = null;
 
             if (IsValid(value))
             {
                 isValid = true;
-                orderPrice = new(value);
+                ProductPrice = new(value);
             }
 
             return isValid;
         }
 
-        public static Option<OrderPrice> TryParseOrderPrice(float orderPrice)
+        public static Option<ProductPrice> TryParseProductPrice(float ProductPrice)
         {
-            if (IsValid(orderPrice))
+            if (IsValid(ProductPrice))
             {
-                return Some<OrderPrice>(new(orderPrice));
+                return Some<ProductPrice>(new(ProductPrice));
             }
             else
             {
@@ -49,3 +48,4 @@ namespace Project.Domain.Models
         }
     }
 }
+
