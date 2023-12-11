@@ -12,9 +12,9 @@ namespace PSSC
 
         static async Task Main(string[] args)
         {
-            var dbContextBuilder = new DbContextOptionsBuilder<ProductContext>()
+            var dbContextBuilder = new DbContextOptionsBuilder<ProjectContext>()
                                                .UseSqlServer(ConnectionString);
-            ProductContext context = new ProductContext(dbContextBuilder.Options);
+            ProjectContext context = new ProjectContext(dbContextBuilder.Options);
 
             UserDto user = new UserDto()
             {

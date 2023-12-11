@@ -5,6 +5,6 @@ namespace Project.Domain.Repositories
 {
     public interface IOrderRepository
     {
-        TryAsync<List<OrderCalculatedPrice>> TryGetExistentOrders();
+        TryAsync<List<EvaluatedOrder>> TryGetExistentOrders();
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace PSSC_Project.Models
 {
-    public class OrderDetails
+    public class OrderDetailsDto
     {
         public int OrderDetailsId { get; set; }
         public int OrderId { get; set; }

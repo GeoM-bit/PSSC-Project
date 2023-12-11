@@ -3,9 +3,9 @@ using PSSC_Project.Models;
 
 namespace PSSC_Project
 {
-    public class ProductContext : DbContext
+    public class ProjectContext : DbContext
     {
-        public ProductContext(DbContextOptions<ProductContext> options) : base(options)
+        public ProjectContext(DbContextOptions<ProjectContext> options) : base(options)
         {
         }
 

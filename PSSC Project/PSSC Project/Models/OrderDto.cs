@@ -4,9 +4,10 @@
     {
         public int OrderId { get; set; }
         public int UserId { get; set; }
+        public string OrderNumber { get; set; }
         public float TotalPrice { get; set; }
         public string DeliveryAddress { get; set; }
-        public string PostalCOode { get; set; }
+        public string PostalCode { get; set; }
         public string Telephone { get; set; }
         public OrderStatus OrderStatus { get; set; }
     }
