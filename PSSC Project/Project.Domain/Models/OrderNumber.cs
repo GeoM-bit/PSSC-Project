@@ -20,7 +20,7 @@ namespace Project.Domain.Models
             }
             else
             {
-                throw new InvalidOrderNumberException("");
+                throw new InvalidOrderNumberException($"{value} is an invalid order number.");
             }
         }
 
