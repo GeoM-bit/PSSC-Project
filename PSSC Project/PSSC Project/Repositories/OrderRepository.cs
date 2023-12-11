@@ -16,11 +16,17 @@ namespace PSSC_Project.Repositories
 
         public TryAsync<List<EvaluatedOrder>> TryGetExistentOrders() => async () => (await (
                     from o in context.Orders
-                    join u in context.Users on o.UserId equals u.UserId
-                    select new { u.UserId, o.OrderId})
+                    join p in context.OrderDetails on o.OrderId equals p.OrderId
+                    join a in context.Products on p.ProductId equals a.ProductId
+                    select new { o.OrderId, o.OrderNumber, o.TotalPrice, o.DeliveryAddress})
                     .AsNoTracking()
                     .ToListAsync())
                     .Select(result => new EvaluatedOrder(
+                        OrderNumber: new (result.OrderNumber),
+                        OrderPrice: new (result.OrderPrice),
+                        OrderDeliveryAddress: new (result.OrderDeliveryAddress),
+                        OrderProducts: new (result.OrderProducts),
+
                         )
                     {
                         OrderId = result.OrderId
