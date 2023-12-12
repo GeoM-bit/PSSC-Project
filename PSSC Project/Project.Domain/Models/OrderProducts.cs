@@ -4,10 +4,11 @@ namespace Project.Domain.Models
 {
     public class OrderProducts
     {
-        public List<Product> OrderProductsList { get; }
-        public OrderProducts(List<Product> orderProductsList)
+
+        public List<EvaluatedProduct> OrderProductsList { get; }
+        public OrderProducts(List<EvaluatedProduct> orderProductsList)
         {
-            OrderProductsList = new List<Product>();
+            OrderProductsList = new List<EvaluatedProduct>();
             foreach (var product in orderProductsList)
             {
                 if (IsValid(product))
@@ -17,13 +18,14 @@ namespace Project.Domain.Models
                 else
                 {
                     OrderProductsList.Clear();
-                    throw new InvalidOrderDeliveryAddress("Wrong Order Product: ProductName: " + product.productName + " Quantity: " + product.quantity + " Price: " + product.price);
+                    throw new InvalidOrderDeliveryAddress("Wrong Order Product: ProductName: " + product.ProductName + " Quantity: " + product.Quantity.Quantity + " Price: " + product.Price.Price);
                 }
             }
         }
-        private static bool IsValid(Product product)
+
+        private static bool IsValid(EvaluatedProduct product)
         {
-            if(product.quantity.Quantity > 0 && product.price.Price > 0) 
+            if(product.Quantity.Quantity > 0 && product.Price.Price > 0) 
                 return true;
             else
                 return false;

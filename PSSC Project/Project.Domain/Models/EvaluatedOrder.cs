@@ -1,8 +1,7 @@
 ﻿namespace Project.Domain.Models
 {
-    public record class EvaluatedOrder(OrderNumber OrderNumber, OrderPrice Price, OrderDeliveryAddress orderDeliveryAddress, OrderProducts orderProducts)
+    public record EvaluatedOrder(OrderNumber OrderNumber, OrderPrice OrderPrice, OrderDeliveryAddress OrderDeliveryAddress, OrderProducts OrderProducts)
     {
         public int OrderId { get; set; }
-        public OrderStatus OrderStatus { get; set; }
     }
 }

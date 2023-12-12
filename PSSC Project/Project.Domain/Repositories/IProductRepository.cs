@@ -11,6 +11,6 @@ namespace Project.Domain.Repositories
 {
     public interface IProductRepository
     {
-        TryAsync<List<Product>> TryGetExistentProducts();
+        TryAsync<List<EvaluatedProduct>> TryGetExistentProducts();
     }
 }

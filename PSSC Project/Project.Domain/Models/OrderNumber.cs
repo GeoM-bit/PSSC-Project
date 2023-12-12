@@ -7,7 +7,7 @@ namespace Project.Domain.Models
 {
     public record OrderNumber
     {
-        public const string Pattern = "^PSSC[0-9]{7}$";
+        public const string Pattern = "^PSSC[0-9]{3}$";
         private static readonly Regex PatternRegex = new(Pattern);
 
         public string Value { get; }

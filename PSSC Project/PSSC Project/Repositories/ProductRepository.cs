@@ -3,9 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Project.Domain.Models;
 using Project.Domain.Repositories;
 
-
-
-
 namespace PSSC_Project.Repositories
 {
     public class ProductRepository : IProductRepository
@@ -17,15 +14,15 @@ namespace PSSC_Project.Repositories
             this.context = context;
         }
 
-        public TryAsync<List<Product>> TryGetExistentProducts() => async () => (await (
+        public TryAsync<List<EvaluatedProduct>> TryGetExistentProducts() => async () => (await (
                   from p in context.Products
                   select new { p.ProductName, p.Quantity, p.Price })
         .AsNoTracking()
         .ToListAsync())
-        .Select(o => new Product(
-            productName: new(o.ProductName),
-            quantity: new(o.Quantity),
-            price: new(o.Price)))
+        .Select(o => new EvaluatedProduct(
+            new ProductName(o.ProductName),
+            new ProductQuantity(o.Quantity),
+            new ProductPrice(o.Price)))
         .ToList();
     }
 }

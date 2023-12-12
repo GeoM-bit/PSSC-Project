@@ -19,7 +19,7 @@ namespace PSSC_Project
             modelBuilder.Entity<UserDto>().ToTable("Users").HasKey(u => u.UserId);
             modelBuilder.Entity<ProductDto>().ToTable("Products").HasKey(p => p.ProductId);
             modelBuilder.Entity<OrderDto>().ToTable("Orders").HasKey(o => o.OrderId);
-            modelBuilder.Entity<OrderDetailsDto>().ToTable("OrderDetails").HasKey(o => o.OrderDetailsId);
+            modelBuilder.Entity<OrderDetailsDto>().ToTable("OrderDetails").HasKey(o => o.OrderDetailId);
         }
     }
 }

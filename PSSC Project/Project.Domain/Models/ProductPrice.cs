@@ -6,8 +6,8 @@ namespace Project.Domain.Models
 {
     public class ProductPrice
     {
-        public float Price { get; }
-        public ProductPrice(float price)
+        public double Price { get; }
+        public ProductPrice(double price)
         {
             if (IsValid(price))
             {
@@ -19,9 +19,9 @@ namespace Project.Domain.Models
             }
         }
 
-        private static bool IsValid(float value) => value > 0;
+        private static bool IsValid(double value) => value > 0;
 
-        public static bool TryParse(float value, out ProductPrice ProductPrice)
+        public static bool TryParse(double value, out ProductPrice ProductPrice)
         {
             bool isValid = false;
             ProductPrice = null;
