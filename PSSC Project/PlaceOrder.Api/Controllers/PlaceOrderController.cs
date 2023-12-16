@@ -21,6 +21,7 @@ namespace PlaceOrder.Api.Controllers
                 Succ: GetAllOrdersHandleSuccess,
                 Fail: GetAllOrdersHandleError              
                 );
+
         private ObjectResult GetAllOrdersHandleError(Exception ex)
         {
             logger.LogError(ex, ex.Message);
@@ -28,12 +29,15 @@ namespace PlaceOrder.Api.Controllers
         }
 
         private OkObjectResult GetAllOrdersHandleSuccess(List<EvaluatedOrder> orders) =>
-      Ok(orders.Select(order => new
-      {
+        Ok(orders.Select(order => new
+        {
           order.OrderNumber,
           order.OrderPrice,
           order.OrderDeliveryAddress,
           order.OrderProducts,
-      }));
+        }));
+
+        [HttpPost]
+
     }
 }
