@@ -1,4 +1,4 @@
-﻿namespace PSSC_Project.Models
+﻿namespace Project.Data.Models
 {
     public class OrderDetailsDto
     {

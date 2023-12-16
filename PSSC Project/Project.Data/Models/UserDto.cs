@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace PSSC_Project.Models
+﻿namespace Project.Data.Models
 {
     public class UserDto
     {

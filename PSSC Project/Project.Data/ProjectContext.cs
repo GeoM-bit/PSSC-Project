@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PSSC_Project.Models;
+using Project.Data.Models;
 
-namespace PSSC_Project
+namespace Project
 {
     public class ProjectContext : DbContext
     {
