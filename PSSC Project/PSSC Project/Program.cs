@@ -1,35 +1,26 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PSSC_Project;
-using PSSC_Project.Models;
+using PSSC_Project.Repositories;
 
 namespace PSSC
 {
     class Program
     {
-        private static readonly Random random = new Random();
-
-        private static string ConnectionString = "Server=localhost\\SQLEXPRESS;Database=PSSC;Trusted_Connection=True;TrustServerCertificate=True";
+        private static string ConnectionString = "Server=RO-9X5DZY2\\SQLEXPRESS;Database=PSSC;Trusted_Connection=True;TrustServerCertificate=True";
 
         static async Task Main(string[] args)
         {
-            var dbContextBuilder = new DbContextOptionsBuilder<ProductContext>()
+            var dbContextBuilder = new DbContextOptionsBuilder<ProjectContext>()
                                                .UseSqlServer(ConnectionString);
-            ProductContext context = new ProductContext(dbContextBuilder.Options);
+            ProjectContext context = new ProjectContext(dbContextBuilder.Options);
 
-            User user = new User()
-            {
-                User_Id=4,
-                FirstName="Georgiana",
-                LastName="Matei"
-            };
+            OrderRepository repository = new OrderRepository(context);
 
-            context.Add(user);
-            await context.SaveChangesAsync();
+            ProductRepository productRepository = new ProductRepository(context);
 
-            var users = await context.Users.ToListAsync();
-
-            foreach (var use in users)
-                Console.WriteLine(use.User_Id.ToString()+" "+use.FirstName.ToString()+" "+use.LastName.ToString());
+           var orders = await repository.TryGetExistentOrders().ToList();
+           
+            var products = await productRepository.TryGetExistentProducts().ToList();
         }
     }
 }
