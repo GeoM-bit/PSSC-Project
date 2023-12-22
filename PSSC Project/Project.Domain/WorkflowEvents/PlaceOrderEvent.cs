@@ -1,4 +1,5 @@
 ﻿using CSharp.Choices;
+using Project.Domain.Models;
 
 namespace Project.Domain.WorkflowEvents
 {
@@ -9,7 +10,23 @@ namespace Project.Domain.WorkflowEvents
 
         public record PlaceOrderSucceededEvent : IPlaceOrderEvent
         { 
-           // public IEnumerable<PlaceOrderSucceededEvent> Results { get;}
+            public IEnumerable<EvaluatedOrder>  Orders{ get;}
+            public DateTime OrderPlacedDate { get; }
+
+            internal PlaceOrderSucceededEvent(IEnumerable<EvaluatedOrder> orders, DateTime orderPlacedDate)
+            {
+                Orders = orders;
+                OrderPlacedDate = orderPlacedDate;
+            }
+        }
+
+        public record PlaceOrderFailEvent : IPlaceOrderEvent
+        {
+            public string Reason { get; }
+            internal PlaceOrderFailEvent(string reason)
+            {
+                Reason = reason;
+            }
         }
     }
 }

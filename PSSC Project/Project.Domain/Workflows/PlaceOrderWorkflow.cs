@@ -1,5 +1,9 @@
 ﻿using Project.Domain.Repositories;
 using Microsoft.Extensions.Logging;
+using static Project.Domain.WorkflowEvents.PlaceOrderEvent;
+using Project.Domain.Commands;
+using Project.Domain.Models;
+using static Project.Domain.Models.Orders;
 
 namespace Project.Domain.Workflows
 {
@@ -14,5 +18,12 @@ namespace Project.Domain.Workflows
             this.logger = logger;
         }
       
+        public async Task<IPlaceOrderEvent> ExecuteAsync(PlaceOrderCommand command)
+        {
+            UnvalidatedOrders unvalidatedOrders = new UnvalidatedOrders(command.InputOrders);
+            
+            var result = 
+            return null;
+        }
     }
 }
