@@ -13,9 +13,6 @@ namespace Project.Domain.Workflows
             this.orderRepository = orderRepository;
             this.logger = logger;
         }
-
-        public async Task<IExamGradesPublishedEvent> ExecuteAsync(PublishGradesCommand command)
-        {
-        }
+      
     }
 }

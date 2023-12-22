@@ -37,7 +37,5 @@ namespace PlaceOrder.Api.Controllers
           order.OrderProducts,
         }));
 
-        [HttpPost]
-
     }
 }
