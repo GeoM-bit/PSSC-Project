@@ -22,7 +22,6 @@ namespace Project.Domain.Workflows
         {
             UnvalidatedOrders unvalidatedOrders = new UnvalidatedOrders(command.InputOrders);
             
-            var result = 
             return null;
         }
     }

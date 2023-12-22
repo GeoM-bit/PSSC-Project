@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using LanguageExt;
 
 namespace Project.Domain.Repositories
 {
-    internal interface IUserRepository
+    public interface IUserRepository
     {
+        TryAsync<List<StudentRegistrationNumber>> TryGetExistingStudents(IEnumerable<string> studentsToCheck);
+
     }
 }
