@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Project.Domain.Commands;
 using Project.Domain.Models;
 using Project.Domain.Repositories;
+using Project.Domain.Workflows;
 
 namespace PlaceOrder.Api.Controllers
 {
@@ -37,5 +39,12 @@ namespace PlaceOrder.Api.Controllers
           order.OrderProducts,
         }));
 
+        [HttpPost]
+        public async Task<IActionResult> PlaceOrder([FromServices]PlaceOrderWorkflow placeOrderWorkflow, [FromBody]UnvalidatedOrder order)
+        {
+            PlaceOrderCommand command = new(order);
+            var result = await placeOrderWorkflow.ExecuteAsync(command);
+            return null;
+        }
     }
 }

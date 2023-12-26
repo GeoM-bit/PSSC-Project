@@ -5,56 +5,56 @@ namespace Project.Domain.Models
     [AsChoice]
     public static partial class Orders
     {
-        public interface IOrders { }
+        public interface IOrder { }
 
-        public record UnvalidatedOrders : IOrders
+        public record UnvalidatedPlacedOrder : IOrder
         {
-            public UnvalidatedOrders(IReadOnlyCollection<UnvalidatedOrder> orderList)
+            public UnvalidatedPlacedOrder(UnvalidatedOrder order)
             {
-                OrderList = orderList;
+                Order = order;
             }
 
-            public IReadOnlyCollection<UnvalidatedOrder> OrderList { get; }
+            public UnvalidatedOrder Order { get; }
         }
 
-        public record InvalidOrders : IOrders
+        public record InvalidOrder : IOrder
         {
-            internal InvalidOrders(IReadOnlyCollection<UnvalidatedOrder> orderList, string reason)
+            internal InvalidOrder(UnvalidatedPlacedOrder order, string reason)
             {
-                OrderList = orderList;
+                Order = order;
                 Reason = reason;
             }
-            public IReadOnlyCollection<UnvalidatedOrder> OrderList { get; }
+            public UnvalidatedPlacedOrder Order { get; }
             public string Reason {  get; }
         }
-        public record FailedOrders : IOrders
+        public record FailedOrder : IOrder
         {
-            internal FailedOrders(IReadOnlyCollection<UnvalidatedOrder> orderList, Exception exception)
+            internal FailedOrder(UnvalidatedOrder order, Exception exception)
             {
-                OrderList = orderList;
+                Order = order;
                 Exception = exception;
             }
-            public IReadOnlyCollection<UnvalidatedOrder> OrderList { get; }
+            public UnvalidatedOrder Order { get; }
             public Exception Exception { get; }
         }
-        public record ValidatedOrders : IOrders
+        public record ValidatedOrder : IOrder
         {
-            public ValidatedOrders(IReadOnlyCollection<EvaluatedOrder> orderList)
+            public ValidatedOrder(EvaluatedOrder order)
             {
-                OrderList = orderList;
+                Order = order;
             }
 
-            public IReadOnlyCollection<EvaluatedOrder> OrderList { get; }
+            public EvaluatedOrder Order { get; }
         }
 
-        public record PlacedOrders : IOrders
+        public record PlacedOrder : IOrder
         {
-            internal PlacedOrders(IReadOnlyCollection<EvaluatedOrder> orderList, DateTime placedOrderDate)
+            internal PlacedOrder(EvaluatedOrder order, DateTime placedOrderDate)
             {
-                OrderList= orderList;
+                Order = order;
                 Date = placedOrderDate;
             }
-            public IReadOnlyCollection<EvaluatedOrder> OrderList { get; }
+            public EvaluatedOrder Order { get; }
             public DateTime Date { get; }
         }
     }

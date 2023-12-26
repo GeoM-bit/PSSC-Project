@@ -4,11 +4,11 @@ namespace Project.Domain.Commands
 {
     public record PlaceOrderCommand
     {
-        public PlaceOrderCommand(IReadOnlyCollection<UnvalidatedOrder> inputOrders)
+        public PlaceOrderCommand(UnvalidatedOrder inputOrder)
         {
-            InputOrders = inputOrders;
+            InputOrder = inputOrder;
         }
 
-        public IReadOnlyCollection<UnvalidatedOrder> InputOrders { get; }
+        public UnvalidatedOrder InputOrder { get; }
     }
 }

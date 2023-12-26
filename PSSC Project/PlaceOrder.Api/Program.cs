@@ -2,6 +2,7 @@ using Project.Domain.Repositories;
 using Project.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Project;
+using Project.Domain.Workflows;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,8 @@ builder.Services.AddDbContext<ProjectContext>(options =>
 });
 
 builder.Services.AddTransient<IOrderRepository, OrderRepository>();
+builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient<PlaceOrderWorkflow>();
 
 var app = builder.Build();
 

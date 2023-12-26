@@ -14,6 +14,24 @@ namespace Project.Data.Repositories
             this.context = context;
         }
 
+        public TryAsync<OrderNumber> TryGetExistentOrder(string orderNumberToCheck) => async () =>
+        {
+            var order = await context.Orders
+                                       .FirstOrDefaultAsync(order => order.OrderNumber.Equals(orderNumberToCheck));
+
+            return new OrderNumber(order.OrderNumber);
+        };
+
+        public TryAsync<List<OrderNumber>> TryGetExistentOrderNumbers() => async () =>
+        {
+            var orderNumbers = await context.Orders
+                                      .Select(o => o.OrderNumber)
+                                      .ToListAsync();
+
+            return orderNumbers.Select(number => new OrderNumber(number))
+                .ToList();
+        };
+
         public TryAsync<List<EvaluatedOrder>> TryGetExistentOrders() => async () => (await(
                          from order in context.Orders
                          join orderDetail in context.OrderDetails on order.OrderId equals orderDetail.OrderId

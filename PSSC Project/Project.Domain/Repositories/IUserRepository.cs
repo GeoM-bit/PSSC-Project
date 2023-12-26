@@ -1,10 +1,11 @@
 ﻿using LanguageExt;
+using Project.Domain.Models;
 
 namespace Project.Domain.Repositories
 {
     public interface IUserRepository
     {
-        TryAsync<List<StudentRegistrationNumber>> TryGetExistingStudents(IEnumerable<string> studentsToCheck);
-
+        TryAsync<UserRegistrationNumber> TryGetExistingUser(string userToCheck);
+        TryAsync<List<UserRegistrationNumber>> TryGetExistingUserRegistrationNumbers();
     }
 }
