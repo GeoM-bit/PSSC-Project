@@ -21,6 +21,7 @@ builder.Services.AddDbContext<ProjectContext>(options =>
 
 builder.Services.AddTransient<IOrderRepository, OrderRepository>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
+builder.Services.AddTransient<IProductRepository, ProductRepository>();
 builder.Services.AddTransient<PlaceOrderWorkflow>();
 
 var app = builder.Build();

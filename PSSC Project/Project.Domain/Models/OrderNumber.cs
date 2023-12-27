@@ -45,7 +45,7 @@ namespace Project.Domain.Models
             return isValid;
         }
 
-        public static Option<OrderNumber> TryParseOrderNumber(string orderNumber)
+        public static Option<OrderNumber> TryParse(string orderNumber)
         {
             if (IsValid(orderNumber))
             {
