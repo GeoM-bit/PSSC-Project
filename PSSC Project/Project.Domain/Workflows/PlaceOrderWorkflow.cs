@@ -2,12 +2,13 @@
 using Microsoft.Extensions.Logging;
 using static Project.Domain.WorkflowEvents.PlaceOrderEvent;
 using Project.Domain.Commands;
-using static Project.Domain.Models.Orders;
 using Project.Domain.Models;
 using LanguageExt;
 using static LanguageExt.Prelude;
 using static Project.Domain.Operations.PlaceOrderOperation;
 using System;
+using static Project.Domain.Models.Orders;
+
 
 namespace Project.Domain.Workflows
 {
@@ -30,40 +31,62 @@ namespace Project.Domain.Workflows
         {
             UnvalidatedPlacedOrder unvalidatedOrder = new UnvalidatedPlacedOrder(command.InputOrder);
 
-            var result = from users in userRepository.TryGetExistingUserRegistrationNumbers()
+            var result = from userRegistrationNumbers in userRepository.TryGetExistingUserRegistrationNumbers()
                                     .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
                          from orders in orderRepository.TryGetExistentOrderNumbers()
                                     .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
                          from existentProducts in productRepository.TryGetExistentProducts()
                                     .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
-                         let checkUserExists = (Func<UserRegistrationNumber, Option<UserRegistrationNumber>>)(user => CheckUserExists(users, user))
+                         from users in userRepository.TryGetExistingUsers()
+                                    .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
+                         let checkUserExists = (Func<UserRegistrationNumber, Option<UserRegistrationNumber>>)(user => CheckUserExists(userRegistrationNumbers, user))
                          let checkOrderExists = (Func<OrderNumber, Option<OrderNumber>>)(order => CheckOrderExists(orders, order))
                          let checkProductsExist = (Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>>)(products => CheckProductsExist(existentProducts, products))
-                         from placedOrder in ExecuteWorkflowAsync(unvalidatedOrder, checkUserExists, checkOrderExists, checkProductsExist).ToAsync()
-                            
-
-                         select unvalidatedOrder;
-                         ;
-            
-            return (IPlaceOrderEvent)await result.Match(
-                Left: order => order,
+                         let checkUserBalance = (Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, Option<UnvalidatedPlacedOrder>>)((unvalidatedOrder,products) => CheckUserBalance(users, unvalidatedOrder, products))
+                         from placedOrder in ExecuteWorkflowAsync(unvalidatedOrder, users, checkUserExists, checkOrderExists, checkProductsExist, checkUserBalance).ToAsync()
+                         from saveResult in orderRepository.TrySaveOrder(placedOrder)
+                                     .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
+                         let successfulEvent = new PlaceOrderSucceededEvent(placedOrder.Order, DateTime.Now)
+                         
+                         select successfulEvent;
+                                    
+            return await result.Match(
+                Left: order => GenerateFailedEvent(order) as IPlaceOrderEvent,
                 Right: order => order);
         }
 
-        private async Task<Either<IOrder, ValidatedOrder>> ExecuteWorkflowAsync(UnvalidatedPlacedOrder unvalidatedPlacedOrder, 
+        private PlaceOrderFailEvent GenerateFailedEvent(IOrder order) =>
+            order.Match<PlaceOrderFailEvent>(
+                unvalidatedPlacedOrder => new($"Invalid state {nameof(UnvalidatedPlacedOrder)}"),
+                invalidOrder => new(invalidOrder.Reason),
+                failedOrder =>
+                {
+                    logger.LogError(failedOrder.Exception, failedOrder.Exception.Message);
+                    return new(failedOrder.Exception.Message);
+                },
+                validatedOrder => new($"Invalid state {nameof(ValidatedOrder)}"),
+                placedOrder => new($"Invalid state {nameof(PlacedOrder)}")
+                );
+
+        private async Task<Either<IOrder, ValidatedOrder>> ExecuteWorkflowAsync(UnvalidatedPlacedOrder unvalidatedPlacedOrder,
+                                                                             IEnumerable<UserDto> users,     
                                                                              Func<UserRegistrationNumber, Option<UserRegistrationNumber>> checkUserExists,
                                                                              Func<OrderNumber, Option<OrderNumber>> checkOrderExists,
-                                                                             Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>> checkProductsExist)
+                                                                             Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>> checkProductsExist,
+                                                                             Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, Option<UnvalidatedPlacedOrder>> checkUserBalance)
         {
-            IOrder order = await ValidatePlacedOrder(checkUserExists, checkOrderExists, checkProductsExist, unvalidatedPlacedOrder);
+            IOrder order = await ValidatePlacedOrder(checkUserExists, checkOrderExists, checkProductsExist, checkUserBalance, unvalidatedPlacedOrder, users);
+            order = CalculatePrice(order);
 
             return order.Match<Either<IOrder, ValidatedOrder>>(
-                whenUnvalidatedPlacedOrder: unvalidatedPlacedOrder => Left(unvalidatedPlacedOrder as IOrder),
-                whenPlacedOrder: placedOrder => Left(placedOrder as IOrder),
-                whenValidatedOrder: validOrder => Right(validOrder)
-                );
+                unvalidatedPlacedOrder => Left(unvalidatedPlacedOrder as IOrder),
+                invalidOrder => Left(invalidOrder as IOrder),
+                failedOrder => Left(failedOrder as IOrder),
+                validatedOrder => Right(validatedOrder),
+                placedOrder => Left(placedOrder as IOrder)
+            );
         }
-
+      
         private Option<UserRegistrationNumber> CheckUserExists(IEnumerable<UserRegistrationNumber> users, UserRegistrationNumber userRegistrationNumber)
         {
             if(users.Any(u => u == userRegistrationNumber)) 
@@ -115,6 +138,17 @@ namespace Project.Domain.Workflows
             {
                 return Some(orderNumber);
             }
+        }
+
+        private Option<UnvalidatedPlacedOrder> CheckUserBalance(List<UserDto> users, UnvalidatedPlacedOrder unvalidatedPlacedOrder, IEnumerable<EvaluatedProduct> products)
+        {
+            var price = products.Sum(p => p.Price.Price * p.Quantity.Quantity);
+            var user = users.FirstOrDefault(u => u.UserRegistrationNumber == unvalidatedPlacedOrder.Order.userRegistrationNumber);
+            if(user!=null && user.Balance >=  price)
+            {
+                return Some(unvalidatedPlacedOrder);
+            }
+            return None;
         }
     }
 }

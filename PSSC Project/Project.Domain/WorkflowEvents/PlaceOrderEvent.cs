@@ -10,12 +10,12 @@ namespace Project.Domain.WorkflowEvents
 
         public record PlaceOrderSucceededEvent : IPlaceOrderEvent
         { 
-            public IEnumerable<EvaluatedOrder>  Orders{ get;}
+            public EvaluatedOrder  Order{ get;}
             public DateTime OrderPlacedDate { get; }
 
-            internal PlaceOrderSucceededEvent(IEnumerable<EvaluatedOrder> orders, DateTime orderPlacedDate)
+            internal PlaceOrderSucceededEvent(EvaluatedOrder order, DateTime orderPlacedDate)
             {
-                Orders = orders;
+                Order = order;
                 OrderPlacedDate = orderPlacedDate;
             }
         }

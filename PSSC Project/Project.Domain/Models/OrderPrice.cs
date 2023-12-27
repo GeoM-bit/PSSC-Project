@@ -20,7 +20,7 @@ namespace Project.Domain.Models
             }
         }
 
-        private static bool IsValid(double value) => value > 0;
+        private static bool IsValid(double value) => value >= 0;
 
         public static bool TryParse(double value, out OrderPrice orderPrice)
         {

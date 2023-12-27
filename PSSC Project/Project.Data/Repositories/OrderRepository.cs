@@ -1,7 +1,10 @@
 ﻿using LanguageExt;
 using Microsoft.EntityFrameworkCore;
+using Project.Data.Models;
 using Project.Domain.Models;
 using Project.Domain.Repositories;
+using static Project.Domain.Models.Orders;
+using static LanguageExt.Prelude;
 
 namespace Project.Data.Repositories
 {
@@ -60,8 +63,49 @@ namespace Project.Data.Repositories
                              new OrderDeliveryAddress(result.OrderDeliveryAddress),
                              new OrderProducts(result.Products)
                              )
-                         { 
-                             OrderId=result.OrderId
-                         }).ToList();
+                         ).ToList();
+
+        public TryAsync<Unit> TrySaveOrder(ValidatedOrder order) => async () =>
+        {
+            var user = await context.Users.FirstOrDefaultAsync(u => u.UserRegistrationNumber == order.Order.UserRegistrationNumber.Value);
+            var orderToSave = new Order()
+            {
+                UserId = user.UserId,
+                OrderNumber = order.Order.OrderNumber.Value,
+                TotalPrice = order.Order.OrderPrice.Price,
+                DeliveryAddress = order.Order.OrderDeliveryAddress.DeliveryAddress,
+                PostalCode = "aha",
+                Telephone = "aha",
+                OrderStatus = OrderStatus.Validated,
+            };
+
+            var res = context.Orders.Add(orderToSave);
+            var orderId = context.Orders.OrderBy(o=>o.OrderId).LastOrDefault().OrderId;
+
+            var productsToUpdate = context.Products
+                                          .Where(prod => order.Order.OrderProducts.OrderProductsList.Any(p => p.ProductName.Name == prod.ProductName)).ToList();
+
+            foreach (var productToUpdate in productsToUpdate)
+            {
+                var orderProduct = order.Order.OrderProducts.OrderProductsList
+                    .First(p => p.ProductName.Name == productToUpdate.ProductName);
+
+                productToUpdate.Quantity -= orderProduct.Quantity.Quantity;
+            }
+
+            order.Order.OrderProducts.OrderProductsList.ForEach(p =>
+                context.OrderDetails.Add(new OrderDetails()
+                {
+                    OrderId = orderId,
+                    ProductId = context.Products.Where(prod => prod.ProductName == p.ProductName.Name).Select(prod => prod.ProductId).FirstOrDefault(),
+                    Quantity = p.Quantity.Quantity
+                }
+                )
+            );
+
+            await context.SaveChangesAsync();
+
+            return unit;
+        };
     }
 }

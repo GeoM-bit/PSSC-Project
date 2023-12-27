@@ -5,11 +5,12 @@ namespace Project.Domain.Models
     [AsChoice]
     public static partial class Orders
     {
-        public interface IOrder {}
+
+        public interface IOrder { }
 
         public record UnvalidatedPlacedOrder : IOrder
         {
-            public UnvalidatedPlacedOrder(UnvalidatedOrder order)
+            internal UnvalidatedPlacedOrder(UnvalidatedOrder order)
             {
                 Order = order;
             }
@@ -25,7 +26,7 @@ namespace Project.Domain.Models
                 Reason = reason;
             }
             public UnvalidatedOrder Order { get; }
-            public string Reason {  get; }
+            public string Reason { get; }
         }
         public record FailedOrder : IOrder
         {

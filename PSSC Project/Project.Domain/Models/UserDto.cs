@@ -1,8 +1,7 @@
-﻿namespace Project.Data.Models
+﻿namespace Project.Domain.Models
 {
     public class UserDto
     {
-        public int UserId { get; set; }
         public string UserRegistrationNumber { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

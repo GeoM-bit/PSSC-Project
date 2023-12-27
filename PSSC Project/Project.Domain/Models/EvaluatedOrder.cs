@@ -2,10 +2,9 @@
 
 namespace Project.Domain.Models
 {
-    public record EvaluatedOrder(OrderNumber OrderNumber = default, OrderPrice OrderPrice = default, OrderDeliveryAddress OrderDeliveryAddress = default, OrderProducts OrderProducts = default)
+    public record EvaluatedOrder(OrderNumber OrderNumber, OrderPrice OrderPrice, OrderDeliveryAddress OrderDeliveryAddress, OrderProducts OrderProducts)
     {
-
-        public int OrderId { get; set; }
+        public UserRegistrationNumber UserRegistrationNumber { get; set; }
     }
 }
   

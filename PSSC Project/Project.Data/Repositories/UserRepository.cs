@@ -30,5 +30,21 @@ namespace Project.Data.Repositories
             return userNumbers.Select(number => new UserRegistrationNumber(number))
                 .ToList();
         };
+
+        public TryAsync<List<UserDto>> TryGetExistingUsers() => async () => 
+        {
+            var users = await context.Users.ToListAsync();
+
+            return users.Select(u => 
+                            new UserDto {
+                                Balance = u.Balance, 
+                                CardExpiryDate = u.CardExpiryDate, 
+                                CardNumber = u.CardNumber, 
+                                CVV = u.CVV,
+                                FirstName = u.FirstName, 
+                                LastName = u.LastName, 
+                                UserRegistrationNumber = u.UserRegistrationNumber 
+                            }).ToList();
+        };
     }
 }
