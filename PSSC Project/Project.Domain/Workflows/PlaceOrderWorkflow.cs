@@ -8,7 +8,7 @@ using static LanguageExt.Prelude;
 using static Project.Domain.Operations.PlaceOrderOperation;
 using System;
 using static Project.Domain.Models.Orders;
-
+using Fare;
 
 namespace Project.Domain.Workflows
 {
@@ -33,17 +33,17 @@ namespace Project.Domain.Workflows
 
             var result = from userRegistrationNumbers in userRepository.TryGetExistingUserRegistrationNumbers()
                                     .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
-                         from orders in orderRepository.TryGetExistentOrderNumbers()
+                         from orderNumbers in orderRepository.TryGetExistentOrderNumbers()
                                     .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
                          from existentProducts in productRepository.TryGetExistentProducts()
                                     .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
                          from users in userRepository.TryGetExistingUsers()
                                     .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
                          let checkUserExists = (Func<UserRegistrationNumber, Option<UserRegistrationNumber>>)(user => CheckUserExists(userRegistrationNumbers, user))
-                         let checkOrderExists = (Func<OrderNumber, Option<OrderNumber>>)(order => CheckOrderExists(orders, order))
+                         let checkOrderExists = (Func<OrderNumber, Option<OrderNumber>>)(order => CheckOrderExists(orderNumbers, order))
                          let checkProductsExist = (Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>>)(products => CheckProductsExist(existentProducts, products))
                          let checkUserBalance = (Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, Option<UnvalidatedPlacedOrder>>)((unvalidatedOrder,products) => CheckUserBalance(users, unvalidatedOrder, products))
-                         from placedOrder in ExecuteWorkflowAsync(unvalidatedOrder, users, checkUserExists, checkOrderExists, checkProductsExist, checkUserBalance).ToAsync()
+                         from placedOrder in ExecuteWorkflowAsync(unvalidatedOrder, orderNumbers, users, checkUserExists, checkOrderExists, checkProductsExist, checkUserBalance).ToAsync()
                          from saveResult in orderRepository.TrySaveOrder(placedOrder)
                                      .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
                          let successfulEvent = new PlaceOrderSucceededEvent(placedOrder.Order, DateTime.Now)
@@ -69,12 +69,14 @@ namespace Project.Domain.Workflows
                 );
 
         private async Task<Either<IOrder, ValidatedOrder>> ExecuteWorkflowAsync(UnvalidatedPlacedOrder unvalidatedPlacedOrder,
+                                                                             IEnumerable<OrderNumber> orderNumbers,
                                                                              IEnumerable<UserDto> users,     
                                                                              Func<UserRegistrationNumber, Option<UserRegistrationNumber>> checkUserExists,
                                                                              Func<OrderNumber, Option<OrderNumber>> checkOrderExists,
                                                                              Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>> checkProductsExist,
                                                                              Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, Option<UnvalidatedPlacedOrder>> checkUserBalance)
         {
+            unvalidatedPlacedOrder = GenerateOrderNumber(unvalidatedPlacedOrder, orderNumbers);
             IOrder order = await ValidatePlacedOrder(checkUserExists, checkOrderExists, checkProductsExist, checkUserBalance, unvalidatedPlacedOrder, users);
             order = CalculatePrice(order);
 
@@ -150,5 +152,28 @@ namespace Project.Domain.Workflows
             }
             return None;
         }
+
+        public static UnvalidatedPlacedOrder GenerateOrderNumber(UnvalidatedPlacedOrder unvalidatedOrder, IEnumerable<OrderNumber> orderNumbers)
+        {
+            Xeger xeger = new Xeger("^PSSC[0-9]{3}$");
+            var orderNumber = xeger.Generate();
+
+            while(orderNumbers.Any(n => n.Value == orderNumber))
+            {
+                orderNumber = xeger.Generate();
+            }
+
+            return new UnvalidatedPlacedOrder(
+                new UnvalidatedOrder
+                (
+                    userRegistrationNumber: unvalidatedOrder.Order.userRegistrationNumber,
+                    OrderNumber: orderNumber,
+                    OrderPrice: 0,
+                    OrderDeliveryAddress: unvalidatedOrder.Order.OrderDeliveryAddress,
+                    OrderProducts: unvalidatedOrder.Order.OrderProducts
+                )               
+                );
+        }
     }
 }
+

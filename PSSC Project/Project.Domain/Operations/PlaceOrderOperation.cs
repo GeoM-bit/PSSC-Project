@@ -62,8 +62,5 @@ namespace Project.Domain.Operations
                },
                placedOrder => placedOrder
            );
-
     }
-
-    
 }

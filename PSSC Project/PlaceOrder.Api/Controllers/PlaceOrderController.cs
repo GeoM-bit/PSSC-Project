@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PlaceOrder.Api.Models;
 using Project.Domain.Commands;
 using Project.Domain.Models;
 using Project.Domain.Repositories;
@@ -41,16 +42,37 @@ namespace PlaceOrder.Api.Controllers
         }));
 
         [HttpPost]
-        public async Task<IActionResult> PlaceOrder([FromServices]PlaceOrderWorkflow placeOrderWorkflow, [FromBody]UnvalidatedOrder order)
+        public async Task<IActionResult> PlaceOrder([FromServices]PlaceOrderWorkflow placeOrderWorkflow, [FromBody]InputOrder inputOrder)
         {
-            PlaceOrderCommand command = new(order);
+            var unvalidatedOrder = MapInputOrderToUnvalidatedOrder(inputOrder);
+            PlaceOrderCommand command = new(unvalidatedOrder);
             var result = await placeOrderWorkflow.ExecuteAsync(command);
 
             return result.Match<IActionResult>(
                 placeOrderSucceededEvent => Ok(),
                 placedOrderFailedEvent => StatusCode(StatusCodes.Status500InternalServerError, placedOrderFailedEvent.Reason)
-                );
-                
+                );               
+        }
+
+        private static UnvalidatedOrder MapInputOrderToUnvalidatedOrder(InputOrder inputOrder) => new UnvalidatedOrder(
+            userRegistrationNumber: inputOrder.RegistrationNumber,
+            OrderNumber: "",
+            OrderPrice: 0,
+            OrderDeliveryAddress: inputOrder.DeliveryAddress,
+            OrderProducts: MapInputProductsToUnvalidatedProducts(inputOrder.OrderProducts)
+            );
+        private static List<UnvalidatedProduct> MapInputProductsToUnvalidatedProducts(List<InputProduct> inputProducts)
+        {
+            List<UnvalidatedProduct> unvalidatedProducts = new List<UnvalidatedProduct>();
+            foreach (var product in inputProducts)
+            {
+                unvalidatedProducts.Add(new UnvalidatedProduct(
+                    ProductName: product.ProductName,
+                    Quantity: product.Quantity
+                    ));
+            }
+
+            return unvalidatedProducts;
         }
     }
 }
