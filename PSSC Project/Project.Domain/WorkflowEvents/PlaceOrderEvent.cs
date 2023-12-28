@@ -20,10 +20,10 @@ namespace Project.Domain.WorkflowEvents
             }
         }
 
-        public record PlaceOrderFailEvent : IPlaceOrderEvent
+        public record PlaceOrderFailedEvent : IPlaceOrderEvent
         {
             public string Reason { get; }
-            internal PlaceOrderFailEvent(string reason)
+            internal PlaceOrderFailedEvent(string reason)
             {
                 Reason = reason;
             }

@@ -55,8 +55,8 @@ namespace Project.Domain.Workflows
                 Right: order => order);
         }
 
-        private PlaceOrderFailEvent GenerateFailedEvent(IOrder order) =>
-            order.Match<PlaceOrderFailEvent>(
+        private PlaceOrderFailedEvent GenerateFailedEvent(IOrder order) =>
+            order.Match<PlaceOrderFailedEvent>(
                 unvalidatedPlacedOrder => new($"Invalid state {nameof(UnvalidatedPlacedOrder)}"),
                 invalidOrder => new(invalidOrder.Reason),
                 failedOrder =>

@@ -3,6 +3,7 @@ using Project.Domain.Commands;
 using Project.Domain.Models;
 using Project.Domain.Repositories;
 using Project.Domain.Workflows;
+using static Project.Domain.WorkflowEvents.PlaceOrderEvent;
 
 namespace PlaceOrder.Api.Controllers
 {
@@ -44,7 +45,12 @@ namespace PlaceOrder.Api.Controllers
         {
             PlaceOrderCommand command = new(order);
             var result = await placeOrderWorkflow.ExecuteAsync(command);
-            return null;
+
+            return result.Match<IActionResult>(
+                placeOrderSucceededEvent => Ok(),
+                placedOrderFailedEvent => StatusCode(StatusCodes.Status500InternalServerError, placedOrderFailedEvent.Reason)
+                );
+                
         }
     }
 }

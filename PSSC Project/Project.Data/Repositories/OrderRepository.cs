@@ -5,6 +5,7 @@ using Project.Domain.Models;
 using Project.Domain.Repositories;
 using static Project.Domain.Models.Orders;
 using static LanguageExt.Prelude;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Project.Data.Repositories
 {
@@ -67,43 +68,59 @@ namespace Project.Data.Repositories
 
         public TryAsync<Unit> TrySaveOrder(ValidatedOrder order) => async () =>
         {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.UserRegistrationNumber == order.Order.UserRegistrationNumber.Value);
-            var orderToSave = new Order()
+            using (IDbContextTransaction transaction = context.Database.BeginTransaction())
             {
-                UserId = user.UserId,
-                OrderNumber = order.Order.OrderNumber.Value,
-                TotalPrice = order.Order.OrderPrice.Price,
-                DeliveryAddress = order.Order.OrderDeliveryAddress.DeliveryAddress,
-                PostalCode = "aha",
-                Telephone = "aha",
-                OrderStatus = OrderStatus.Validated,
-            };
-
-            var res = context.Orders.Add(orderToSave);
-            var orderId = context.Orders.OrderBy(o=>o.OrderId).LastOrDefault().OrderId;
-
-            var productsToUpdate = context.Products
-                                          .Where(prod => order.Order.OrderProducts.OrderProductsList.Any(p => p.ProductName.Name == prod.ProductName)).ToList();
-
-            foreach (var productToUpdate in productsToUpdate)
-            {
-                var orderProduct = order.Order.OrderProducts.OrderProductsList
-                    .First(p => p.ProductName.Name == productToUpdate.ProductName);
-
-                productToUpdate.Quantity -= orderProduct.Quantity.Quantity;
-            }
-
-            order.Order.OrderProducts.OrderProductsList.ForEach(p =>
-                context.OrderDetails.Add(new OrderDetails()
+                try
                 {
-                    OrderId = orderId,
-                    ProductId = context.Products.Where(prod => prod.ProductName == p.ProductName.Name).Select(prod => prod.ProductId).FirstOrDefault(),
-                    Quantity = p.Quantity.Quantity
-                }
-                )
-            );
+                    var user = await context.Users.FirstOrDefaultAsync(u => u.UserRegistrationNumber == order.Order.UserRegistrationNumber.Value);
+                    user.Balance -= order.Order.OrderPrice.Price;
 
-            await context.SaveChangesAsync();
+                    var orderToSave = new Order()
+                    {
+                        UserId = user.UserId,
+                        OrderNumber = order.Order.OrderNumber.Value,
+                        TotalPrice = order.Order.OrderPrice.Price,
+                        DeliveryAddress = order.Order.OrderDeliveryAddress.DeliveryAddress,
+                        PostalCode = "aha",
+                        Telephone = "aha",
+                        OrderStatus = OrderStatus.Validated,
+                    };
+
+                    var res = context.Orders.Add(orderToSave);
+                    await context.SaveChangesAsync();
+
+                    var savedOrder = await context.Orders.OrderBy(o => o.OrderId).LastOrDefaultAsync();
+
+                    var productsToUpdate = context.Products.AsEnumerable()
+                                                  .Where(prod => order.Order.OrderProducts.OrderProductsList.Any(p => p.ProductName.Name == prod.ProductName)).ToList();
+
+                    foreach (var productToUpdate in productsToUpdate)
+                    {
+                        var orderProduct = order.Order.OrderProducts.OrderProductsList
+                            .First(p => p.ProductName.Name == productToUpdate.ProductName);
+
+                        productToUpdate.Quantity -= orderProduct.Quantity.Quantity;
+                    }
+
+                    order.Order.OrderProducts.OrderProductsList.ForEach(p =>
+                        context.OrderDetails.Add(new OrderDetails()
+                        {
+                            OrderId = savedOrder.OrderId,
+                            ProductId = context.Products.AsEnumerable().Where(prod => prod.ProductName == p.ProductName.Name).Select(prod => prod.ProductId).FirstOrDefault(),
+                            Quantity = p.Quantity.Quantity
+                        }
+                        )
+                    );
+
+                    await context.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine("Error occurred.");
+                }
+            }
 
             return unit;
         };
