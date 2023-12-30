@@ -7,6 +7,7 @@ namespace Project.Domain.Repositories
     {
         TryAsync<UserRegistrationNumber> TryGetExistingUser(string userToCheck);
         TryAsync<List<UserRegistrationNumber>> TryGetExistingUserRegistrationNumbers();
-        TryAsync<List<UserDto>> TryGetExistingUsers();       
+        TryAsync<List<UserDto>> TryGetExistingUsers();
+        TryAsync<bool> UpdateCardDetails(CardDetailsDto cardDetailsDto);
     }
 }

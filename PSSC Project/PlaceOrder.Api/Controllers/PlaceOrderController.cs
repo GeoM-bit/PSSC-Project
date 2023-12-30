@@ -55,10 +55,14 @@ namespace PlaceOrder.Api.Controllers
         }
 
         private static UnvalidatedOrder MapInputOrderToUnvalidatedOrder(InputOrder inputOrder) => new UnvalidatedOrder(
-            userRegistrationNumber: inputOrder.RegistrationNumber,
+            UserRegistrationNumber: inputOrder.RegistrationNumber,
             OrderNumber: "",
             OrderPrice: 0,
             OrderDeliveryAddress: inputOrder.DeliveryAddress,
+            OrderTelephone: inputOrder.Telephone,
+            CardNumber: inputOrder.CardNumber,
+            CVV: inputOrder.CVV,
+            CardExpiryDate: inputOrder.CardExpiryDate,
             OrderProducts: MapInputProductsToUnvalidatedProducts(inputOrder.OrderProducts)
             );
         private static List<UnvalidatedProduct> MapInputProductsToUnvalidatedProducts(List<InputProduct> inputProducts)

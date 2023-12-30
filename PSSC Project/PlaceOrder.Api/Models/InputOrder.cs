@@ -13,24 +13,18 @@ namespace PlaceOrder.Api.Models
         [Required]
         public string DeliveryAddress { get; set; }
 
-        //[Required]
-        //public string PostalCode { get; set; }
+        [Required]
+        [StringLength(10)]
+        public string Telephone { get; set; }
 
-        //[Required]
-        //[StringLength(10)]
-        //public string Telephone { get; set; }
+        [StringLength(16)]
+        public string? CardNumber { get; set; }
 
-        //[Required]
-        //[StringLength(16)]
-        //public string CardNumber { get; set; }
+        [StringLength(3)]
+        public string? CVV { get; set; }
 
-        //[Required]
-        //[StringLength(3)]
-        //public int CVV { get; set; }
-
-        //[Required]
-        //[FromNow]
-        //public DateTime CardExpiryDate { get; set; }
+        [FromNow]
+        public DateTime? CardExpiryDate { get; set; }
 
         [Required]
         public List<InputProduct> OrderProducts {  get; set; }

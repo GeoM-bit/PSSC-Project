@@ -40,13 +40,14 @@ namespace Project.Data.Repositories
                          from order in context.Orders
                          join orderDetail in context.OrderDetails on order.OrderId equals orderDetail.OrderId
                          join product in context.Products on orderDetail.ProductId equals product.ProductId
-                         group new { product, orderDetail.Quantity, order.OrderNumber, order.TotalPrice, order.DeliveryAddress } by order.OrderId into grouped
+                         group new { product, orderDetail.Quantity, order.OrderNumber, order.TotalPrice, order.DeliveryAddress, order.Telephone } by order.OrderId into grouped
                          select new
                          {
                              OrderId = grouped.Key,
                              OrderNumber = grouped.Select(x => x.OrderNumber).FirstOrDefault(),
                              OrderPrice = grouped.Select(x => x.TotalPrice).FirstOrDefault(),
                              OrderDeliveryAddress = grouped.Select(x => x.DeliveryAddress).FirstOrDefault(),
+                             OrderTelephone = grouped.Select(x => x.Telephone).FirstOrDefault(),
                              Products = grouped.Select(item => 
                              new EvaluatedProduct
                              (
@@ -62,6 +63,7 @@ namespace Project.Data.Repositories
                              new OrderNumber(result.OrderNumber),
                              new OrderPrice(result.OrderPrice),
                              new OrderDeliveryAddress(result.OrderDeliveryAddress),
+                             new OrderTelephone(result.OrderTelephone),
                              new OrderProducts(result.Products)
                              )
                          ).ToList();
@@ -73,17 +75,25 @@ namespace Project.Data.Repositories
                 try
                 {
                     var user = await context.Users.FirstOrDefaultAsync(u => u.UserRegistrationNumber == order.Order.UserRegistrationNumber.Value);
-                    user.Balance -= order.Order.OrderPrice.Price;
 
+                    if (order.Order.CardDetails.ToUpdate)
+                    {
+                        user.Balance = order.Order.CardDetails.UserCardBalance.Value - order.Order.OrderPrice.Price;
+                        user.CVV = order.Order.CardDetails.UserCardCVV.Value;
+                        user.CardNumber = order.Order.CardDetails.UserCardNumber.CardNumber;
+                        user.CardExpiryDate = order.Order.CardDetails.UserCardExpiryDate.Value;
+                    }
+                    else
+                    {
+                        user.Balance -= order.Order.OrderPrice.Price;
+                    }
                     var orderToSave = new Order()
                     {
                         UserId = user.UserId,
                         OrderNumber = order.Order.OrderNumber.Value,
                         TotalPrice = order.Order.OrderPrice.Price,
                         DeliveryAddress = order.Order.OrderDeliveryAddress.DeliveryAddress,
-                        PostalCode = "aha",
-                        Telephone = "aha",
-                        OrderStatus = OrderStatus.Validated,
+                        Telephone = order.Order.OrderTelephone.Value
                     };
 
                     var res = context.Orders.Add(orderToSave);

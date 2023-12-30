@@ -46,5 +46,25 @@ namespace Project.Data.Repositories
                                 UserRegistrationNumber = u.UserRegistrationNumber 
                             }).ToList();
         };
+
+        public TryAsync<bool> UpdateCardDetails(CardDetailsDto cardDetailsDto) => async () =>
+        {
+            var user = await context.Users
+                                       .FirstOrDefaultAsync(user => user.UserRegistrationNumber.Equals(cardDetailsDto.UserRegistrationNumber));
+            if (user != null)
+            {
+                user.CardNumber = cardDetailsDto.CardNumber;
+                user.CVV = cardDetailsDto.CVV;
+                user.CardExpiryDate = cardDetailsDto.CardExpiryDate;
+                user.Balance = cardDetailsDto.Balance;
+
+                context.Users.Update(user);
+                var res = await context.SaveChangesAsync();
+
+                return res > 0;
+            }
+
+            return false;
+        };
     }
 }

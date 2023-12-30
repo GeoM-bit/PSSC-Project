@@ -7,8 +7,6 @@
         public string OrderNumber { get; set; }
         public double TotalPrice { get; set; }
         public string DeliveryAddress { get; set; }
-        public string PostalCode { get; set; }
         public string Telephone { get; set; }
-        public OrderStatus OrderStatus { get; set; }
     }
 }

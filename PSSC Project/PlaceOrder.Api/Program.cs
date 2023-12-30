@@ -3,6 +3,9 @@ using Project.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Project;
 using Project.Domain.Workflows;
+using Project.Events;
+using Project.Events.ServiceBus;
+using Microsoft.Extensions.Azure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +26,13 @@ builder.Services.AddTransient<IOrderRepository, OrderRepository>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IProductRepository, ProductRepository>();
 builder.Services.AddTransient<PlaceOrderWorkflow>();
+//builder.Services.AddSingleton<IEventSender, ServiceBusTopicEventSender>();
+
+//builder.Services.AddAzureClients(client =>
+//{
+//    client.AddServiceBusClient(builder.Configuration.GetConnectionString("ServiceBus"));
+//});
+
 
 var app = builder.Build();
 

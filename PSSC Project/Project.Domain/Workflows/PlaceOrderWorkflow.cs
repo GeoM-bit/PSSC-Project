@@ -6,9 +6,14 @@ using Project.Domain.Models;
 using LanguageExt;
 using static LanguageExt.Prelude;
 using static Project.Domain.Operations.PlaceOrderOperation;
-using System;
 using static Project.Domain.Models.Orders;
 using Fare;
+using Project.Events;
+using Project.Domain.WorkflowEvents;
+using Project.Dto.Events;
+using Project.Dto.Models;
+using System.Text.RegularExpressions;
+using LanguageExt.Pipes;
 
 namespace Project.Domain.Workflows
 {
@@ -18,13 +23,15 @@ namespace Project.Domain.Workflows
         private readonly IUserRepository userRepository;
         private readonly IProductRepository productRepository;
         private readonly ILogger<PlaceOrderWorkflow> logger;
+        private readonly IEventSender eventSender;
 
-        public PlaceOrderWorkflow(IOrderRepository orderRepository, IUserRepository userRepository, IProductRepository productRepository, ILogger<PlaceOrderWorkflow> logger)
+        public PlaceOrderWorkflow(IOrderRepository orderRepository, IUserRepository userRepository, IProductRepository productRepository, ILogger<PlaceOrderWorkflow> logger)//, IEventSender eventSender)
         {
             this.orderRepository = orderRepository;
             this.userRepository = userRepository;
             this.productRepository = productRepository;
             this.logger = logger;
+           // this.eventSender = eventSender;
         }
       
         public async Task<IPlaceOrderEvent> ExecuteAsync(PlaceOrderCommand command)
@@ -42,12 +49,33 @@ namespace Project.Domain.Workflows
                          let checkUserExists = (Func<UserRegistrationNumber, Option<UserRegistrationNumber>>)(user => CheckUserExists(userRegistrationNumbers, user))
                          let checkOrderExists = (Func<OrderNumber, Option<OrderNumber>>)(order => CheckOrderExists(orderNumbers, order))
                          let checkProductsExist = (Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>>)(products => CheckProductsExist(existentProducts, products))
-                         let checkUserBalance = (Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, Option<UnvalidatedPlacedOrder>>)((unvalidatedOrder,products) => CheckUserBalance(users, unvalidatedOrder, products))
-                         from placedOrder in ExecuteWorkflowAsync(unvalidatedOrder, orderNumbers, users, checkUserExists, checkOrderExists, checkProductsExist, checkUserBalance).ToAsync()
+                         let checkUserPaymentDetails = (Func<UnvalidatedPlacedOrder, Option<CardDetailsDto>>)(user => CheckUserPaymentDetails(unvalidatedOrder, users))
+                         let updateCardDetails = (Func<CardDetailsDto, Option<CardDetailsDto>>)(card => UpdateCardDetails(card))
+                         let checkUserBalance = (Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, CardDetailsDto, Option <UnvalidatedPlacedOrder>>)((unvalidatedOrder, products, cardDetails) => CheckUserBalance(users, unvalidatedOrder, products, cardDetails))
+                         from placedOrder in ExecuteWorkflowAsync(unvalidatedOrder, orderNumbers, checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, updateCardDetails, checkUserBalance).ToAsync()
                          from saveResult in orderRepository.TrySaveOrder(placedOrder)
                                      .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
+
                          let successfulEvent = new PlaceOrderSucceededEvent(placedOrder.Order, DateTime.Now)
-                         
+                         let eventToPublish = new PlacedOrderEvent()
+                         {
+                             Order = new OrderDto()
+                             {
+                                 UserRgistrationNumber = placedOrder.Order.UserRegistrationNumber.Value,
+                                 OrderNumber = placedOrder.Order.OrderNumber.Value,
+                                 DeliveryAddress = placedOrder.Order.OrderDeliveryAddress.DeliveryAddress,
+                                 Telephone = placedOrder.Order.OrderTelephone.Value,
+                                 OrderProducts = placedOrder.Order.OrderProducts.OrderProductsList.Select(
+                                     p => new ProductDto()
+                                     {
+                                         ProductName = p.ProductName.Name,
+                                         Quantity = p.Quantity.Quantity
+                                     }
+                                     ).ToList()
+                             }
+                         }
+                         //from publicEventResult in eventSender.SendAsync("order", eventToPublish)
+                         //                   .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
                          select successfulEvent;
                                     
             return await result.Match(
@@ -70,14 +98,16 @@ namespace Project.Domain.Workflows
 
         private async Task<Either<IOrder, ValidatedOrder>> ExecuteWorkflowAsync(UnvalidatedPlacedOrder unvalidatedPlacedOrder,
                                                                              IEnumerable<OrderNumber> orderNumbers,
-                                                                             IEnumerable<UserDto> users,     
                                                                              Func<UserRegistrationNumber, Option<UserRegistrationNumber>> checkUserExists,
                                                                              Func<OrderNumber, Option<OrderNumber>> checkOrderExists,
                                                                              Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>> checkProductsExist,
-                                                                             Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, Option<UnvalidatedPlacedOrder>> checkUserBalance)
+                                                                             Func<UnvalidatedPlacedOrder, Option<CardDetailsDto>> checkUserPaymentDetails,
+                                                                             Func<CardDetailsDto, Option<CardDetailsDto>> updateCardDetails,
+                                                                             Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, CardDetailsDto, Option<UnvalidatedPlacedOrder>> checkUserBalance)
         {
             unvalidatedPlacedOrder = GenerateOrderNumber(unvalidatedPlacedOrder, orderNumbers);
-            IOrder order = await ValidatePlacedOrder(checkUserExists, checkOrderExists, checkProductsExist, checkUserBalance, unvalidatedPlacedOrder, users);
+            IOrder order = await ValidatePlacedOrder(checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, updateCardDetails, checkUserBalance, unvalidatedPlacedOrder);
+
             order = CalculatePrice(order);
 
             return order.Match<Either<IOrder, ValidatedOrder>>(
@@ -142,13 +172,24 @@ namespace Project.Domain.Workflows
             }
         }
 
-        private Option<UnvalidatedPlacedOrder> CheckUserBalance(List<UserDto> users, UnvalidatedPlacedOrder unvalidatedPlacedOrder, IEnumerable<EvaluatedProduct> products)
+        private Option<UnvalidatedPlacedOrder> CheckUserBalance(List<UserDto> users, UnvalidatedPlacedOrder unvalidatedPlacedOrder, IEnumerable<EvaluatedProduct> products, CardDetailsDto cardDetails)
         {
             var price = products.Sum(p => p.Price.Price * p.Quantity.Quantity);
-            var user = users.FirstOrDefault(u => u.UserRegistrationNumber == unvalidatedPlacedOrder.Order.userRegistrationNumber);
-            if(user!=null && user.Balance >=  price)
+
+            if (!cardDetails.ToUpdate)
             {
-                return Some(unvalidatedPlacedOrder);
+                var user = users.FirstOrDefault(u => u.UserRegistrationNumber == unvalidatedPlacedOrder.Order.UserRegistrationNumber);
+                if (user != null && user.Balance >= price)
+                {
+                    return Some(unvalidatedPlacedOrder);
+                }
+            }
+            else
+            {
+                if (cardDetails.Balance >= price)
+                {
+                    return Some(unvalidatedPlacedOrder);
+                }
             }
             return None;
         }
@@ -158,7 +199,7 @@ namespace Project.Domain.Workflows
             Xeger xeger = new Xeger("^PSSC[0-9]{3}$");
             var orderNumber = xeger.Generate();
 
-            while(orderNumbers.Any(n => n.Value == orderNumber))
+            while (orderNumbers.Any(n => n.Value == orderNumber))
             {
                 orderNumber = xeger.Generate();
             }
@@ -166,13 +207,62 @@ namespace Project.Domain.Workflows
             return new UnvalidatedPlacedOrder(
                 new UnvalidatedOrder
                 (
-                    userRegistrationNumber: unvalidatedOrder.Order.userRegistrationNumber,
+                    UserRegistrationNumber: unvalidatedOrder.Order.UserRegistrationNumber,
                     OrderNumber: orderNumber,
                     OrderPrice: 0,
                     OrderDeliveryAddress: unvalidatedOrder.Order.OrderDeliveryAddress,
+                    OrderTelephone: unvalidatedOrder.Order.OrderTelephone,
+                    CardNumber: unvalidatedOrder.Order.CardNumber,
+                    CVV: unvalidatedOrder.Order.CVV,
+                    CardExpiryDate: unvalidatedOrder.Order.CardExpiryDate,
                     OrderProducts: unvalidatedOrder.Order.OrderProducts
-                )               
+                )
                 );
+        }
+        private Option<CardDetailsDto> CheckUserPaymentDetails(UnvalidatedPlacedOrder unvalidatedPlacedOrder, IEnumerable<UserDto> users)
+        {
+            if (unvalidatedPlacedOrder.Order.CardNumber == null && unvalidatedPlacedOrder.Order.CVV == null && unvalidatedPlacedOrder.Order.CardExpiryDate == null)
+            {
+                var user = users.FirstOrDefault(u => u.UserRegistrationNumber == unvalidatedPlacedOrder.Order.UserRegistrationNumber);
+                if (user != null)
+                {
+                    if (user.CardNumber != null && user.CVV != null && user.CardExpiryDate != null && user.Balance != null)
+                    {
+                        if ((new Regex("[0-9]{16}")).IsMatch(user.CardNumber) && user.CVV.ToString().Length == 3 && user.CardExpiryDate > DateTime.Now)
+                        {
+                            return Some(new CardDetailsDto() 
+                            {
+                                ToUpdate = false});
+                        }
+                    }
+                }
+            }
+            else if (unvalidatedPlacedOrder.Order.CardNumber != null && unvalidatedPlacedOrder.Order.CVV != null && unvalidatedPlacedOrder.Order.CardExpiryDate != null)
+            {
+                if ((new Regex("[0-9]{16}")).IsMatch(unvalidatedPlacedOrder.Order.CardNumber) && unvalidatedPlacedOrder.Order.CVV.ToString().Length == 3 && unvalidatedPlacedOrder.Order.CardExpiryDate > DateTime.Now)
+                {
+
+                    return Some(new CardDetailsDto()
+                    { 
+                        UserRegistrationNumber = unvalidatedPlacedOrder.Order.UserRegistrationNumber,
+                        CardNumber = unvalidatedPlacedOrder.Order.CardNumber,
+                        CVV = unvalidatedPlacedOrder.Order.CVV,
+                        CardExpiryDate = unvalidatedPlacedOrder.Order.CardExpiryDate,
+                        Balance = new Random().NextDouble() * (7000 - 1000) + 1000,
+                        ToUpdate = true
+                    });
+                }
+            }
+            return None;
+        }
+        private Option<CardDetailsDto> UpdateCardDetails(CardDetailsDto cardDetailsDto)
+        {
+            if(cardDetailsDto.ToUpdate)
+            {
+                userRepository.UpdateCardDetails(cardDetailsDto);
+            }
+            
+            return Some(cardDetailsDto);
         }
     }
 }
