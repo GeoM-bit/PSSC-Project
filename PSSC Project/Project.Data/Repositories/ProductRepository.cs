@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Project.Domain.Models;
 using Project.Domain.Repositories;
 
-namespace PSSC_Project.Repositories
+namespace Project.Data.Repositories
 {
     public class ProductRepository : IProductRepository
     {

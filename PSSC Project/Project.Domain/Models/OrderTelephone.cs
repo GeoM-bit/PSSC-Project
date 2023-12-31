@@ -5,14 +5,14 @@ using static LanguageExt.Prelude;
 
 namespace Project.Domain.Models
 {
-    public record OrderNumber
+    public record OrderTelephone
     {
-        public const string Pattern = "^PSSC[0-9]{3}$";
+        public const string Pattern = "^0[0-9]{9}";
         private static readonly Regex PatternRegex = new(Pattern);
 
         public string Value { get; }
 
-        public OrderNumber(string value)
+        public OrderTelephone(string value)
         {
             if (IsValid(value))
             {
@@ -20,7 +20,7 @@ namespace Project.Domain.Models
             }
             else
             {
-                throw new InvalidOrderNumberException($"{value} is an invalid order number.");
+                throw new InvalidOrderTelephoneException($"{value} is an invalid telephone number.");
             }
         }
 
@@ -31,25 +31,25 @@ namespace Project.Domain.Models
             return Value;
         }
 
-        public static bool TryParse(string stringValue, out OrderNumber orderNumber)
+        public static bool TryParse(string stringValue, out OrderTelephone orderTelephone)
         {
             bool isValid = false;
-            orderNumber = null;
+            orderTelephone = null;
 
             if (IsValid(stringValue))
             {
                 isValid = true;
-                orderNumber = new(stringValue);
+                orderTelephone = new(stringValue);
             }
 
             return isValid;
         }
 
-        public static Option<OrderNumber> TryParse(string orderNumber)
+        public static Option<OrderTelephone> TryParse(string orderTelephone)
         {
-            if (IsValid(orderNumber))
+            if (IsValid(orderTelephone))
             {
-                return Some<OrderNumber>(new(orderNumber));
+                return Some<OrderTelephone>(new(orderTelephone));
             }
             else
             {

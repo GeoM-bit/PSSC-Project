@@ -1,6 +1,6 @@
-﻿namespace PSSC_Project.Models
+﻿namespace Project.Data.Models
 {
-    public class ProductDto
+    public class Product
     {
         public int ProductId { get; set; }
         public string ProductName { get; set; }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -7,7 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CSharp.Choices" Version="2.1.1" />
+    <PackageReference Include="Fare" Version="2.2.1" />
     <PackageReference Include="LanguageExt.Core" Version="4.4.7" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Project.Dto\Project.Dto.csproj" />
+    <ProjectReference Include="..\Project.Events\Project.Events.csproj" />
   </ItemGroup>
 
 </Project>

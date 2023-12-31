@@ -1,7 +1,11 @@
-﻿namespace Project.Domain.Models
+﻿using LanguageExt;
+
+namespace Project.Domain.Models
 {
-    public record EvaluatedOrder(OrderNumber OrderNumber, OrderPrice OrderPrice, OrderDeliveryAddress OrderDeliveryAddress, OrderProducts OrderProducts)
+    public record EvaluatedOrder(OrderNumber OrderNumber, OrderPrice OrderPrice, OrderDeliveryAddress OrderDeliveryAddress, OrderTelephone OrderTelephone, OrderProducts OrderProducts)
     {
-        public int OrderId { get; set; }
+        public UserRegistrationNumber UserRegistrationNumber { get; set; }
+        public CardDetails CardDetails { get; set; }
     }
 }
+  

@@ -1,18 +1,18 @@
 ﻿using LanguageExt;
-using Project.Domain.Exceptions;
-using System.Text.RegularExpressions;
 using static LanguageExt.Prelude;
+using System.Text.RegularExpressions;
+using Project.Domain.Exceptions;
 
 namespace Project.Domain.Models
 {
-    public record OrderNumber
+    public record UserRegistrationNumber
     {
         public const string Pattern = "^PSSC[0-9]{3}$";
         private static readonly Regex PatternRegex = new(Pattern);
 
         public string Value { get; }
 
-        public OrderNumber(string value)
+        public UserRegistrationNumber(string value)
         {
             if (IsValid(value))
             {
@@ -20,7 +20,7 @@ namespace Project.Domain.Models
             }
             else
             {
-                throw new InvalidOrderNumberException($"{value} is an invalid order number.");
+                throw new InvalidUserRegistrationNumberException($"{value} is an invalid user registration number.");
             }
         }
 
@@ -31,25 +31,25 @@ namespace Project.Domain.Models
             return Value;
         }
 
-        public static bool TryParse(string stringValue, out OrderNumber orderNumber)
+        public static bool TryParse(string stringValue, out UserRegistrationNumber userRegistrationNumber)
         {
             bool isValid = false;
-            orderNumber = null;
+            userRegistrationNumber = null;
 
             if (IsValid(stringValue))
             {
                 isValid = true;
-                orderNumber = new(stringValue);
+                userRegistrationNumber = new(stringValue);
             }
 
             return isValid;
         }
 
-        public static Option<OrderNumber> TryParse(string orderNumber)
+        public static Option<UserRegistrationNumber> TryParse(string userRegistrationNumber)
         {
-            if (IsValid(orderNumber))
+            if (IsValid(userRegistrationNumber))
             {
-                return Some<OrderNumber>(new(orderNumber));
+                return Some<UserRegistrationNumber>(new(userRegistrationNumber));
             }
             else
             {
@@ -58,3 +58,4 @@ namespace Project.Domain.Models
         }
     }
 }
+
