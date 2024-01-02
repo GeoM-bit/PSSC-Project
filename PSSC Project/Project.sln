@@ -19,7 +19,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.Events", "Project.E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.Dto", "Project.Dto\Project.Dto.csproj", "{4C8DD064-5588-40A1-BDB2-89526B9F38C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Project.Events.ServiceBus", "Project.Events.ServiceBus\Project.Events.ServiceBus.csproj", "{28E8C1CF-2951-481D-A7A4-B1FC92CD7314}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.Events.ServiceBus", "Project.Events.ServiceBus\Project.Events.ServiceBus.csproj", "{28E8C1CF-2951-481D-A7A4-B1FC92CD7314}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModifyOrder.Api", "ModifyOrder.Api\ModifyOrder.Api.csproj", "{77AE3A77-E93E-4581-AB42-0877F14850E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Project.EventProcessor", "Project.EventProcessor\Project.EventProcessor.csproj", "{7540D08E-ABC6-46CB-A0FB-807D89784269}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Project.AzureMessageHandler", "Project.AzureMessageHandler\Project.AzureMessageHandler.csproj", "{0833DDDB-ED3F-46F3-8FA8-5F9E39755A41}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Project.Services", "Project.Services\Project.Services.csproj", "{9831F566-B286-44E6-AC3C-7B1833536DC1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +59,22 @@ Global
 		{28E8C1CF-2951-481D-A7A4-B1FC92CD7314}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{28E8C1CF-2951-481D-A7A4-B1FC92CD7314}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{28E8C1CF-2951-481D-A7A4-B1FC92CD7314}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77AE3A77-E93E-4581-AB42-0877F14850E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77AE3A77-E93E-4581-AB42-0877F14850E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77AE3A77-E93E-4581-AB42-0877F14850E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77AE3A77-E93E-4581-AB42-0877F14850E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7540D08E-ABC6-46CB-A0FB-807D89784269}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7540D08E-ABC6-46CB-A0FB-807D89784269}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7540D08E-ABC6-46CB-A0FB-807D89784269}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7540D08E-ABC6-46CB-A0FB-807D89784269}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0833DDDB-ED3F-46F3-8FA8-5F9E39755A41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0833DDDB-ED3F-46F3-8FA8-5F9E39755A41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0833DDDB-ED3F-46F3-8FA8-5F9E39755A41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0833DDDB-ED3F-46F3-8FA8-5F9E39755A41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9831F566-B286-44E6-AC3C-7B1833536DC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9831F566-B286-44E6-AC3C-7B1833536DC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9831F566-B286-44E6-AC3C-7B1833536DC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9831F566-B286-44E6-AC3C-7B1833536DC1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

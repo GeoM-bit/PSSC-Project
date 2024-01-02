@@ -25,13 +25,13 @@ namespace Project.Domain.Workflows
         private readonly ILogger<PlaceOrderWorkflow> logger;
         private readonly IEventSender eventSender;
 
-        public PlaceOrderWorkflow(IOrderRepository orderRepository, IUserRepository userRepository, IProductRepository productRepository, ILogger<PlaceOrderWorkflow> logger)//, IEventSender eventSender)
+        public PlaceOrderWorkflow(IOrderRepository orderRepository, IUserRepository userRepository, IProductRepository productRepository, ILogger<PlaceOrderWorkflow> logger, IEventSender eventSender)
         {
             this.orderRepository = orderRepository;
             this.userRepository = userRepository;
             this.productRepository = productRepository;
             this.logger = logger;
-           // this.eventSender = eventSender;
+            this.eventSender = eventSender;
         }
       
         public async Task<IPlaceOrderEvent> ExecuteAsync(PlaceOrderCommand command)
@@ -74,8 +74,8 @@ namespace Project.Domain.Workflows
                                      ).ToList()
                              }
                          }
-                         //from publicEventResult in eventSender.SendAsync("order", eventToPublish)
-                         //                   .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
+                         from publicEventResult in eventSender.SendAsync("order", eventToPublish)
+                                            .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
                          select successfulEvent;
                                     
             return await result.Match(

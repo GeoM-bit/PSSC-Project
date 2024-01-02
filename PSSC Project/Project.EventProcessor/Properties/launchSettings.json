@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Project.EventProcessor": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "NETCORE_ENVIRONMENT": "development",
+        "ConnectionStrings:ServiceBus": "Endpoint=sb://shopping.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=y7CbYsV5bM5dYai1cVIa4wSmvEbjYkdsy+ASbJf0KXo="
+      }
+    }
+  }
+}
