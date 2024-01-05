@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ModifyOrder.Api.Models;
+using Project.Domain.Workflows;
 using Project.Dto.Models;
 using Project.Services;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace ModifyOrder.Api.Controllers
 {
@@ -29,9 +32,10 @@ namespace ModifyOrder.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<string> ModifyOrder(string orderNumber)
+        [SwaggerRequestExample(typeof(InputModifyOrder), typeof(InputModifyOrderExample))]
+        public async Task<string> ModifyOrder([FromServices] ModifyOrderWorkflow modifyOrderWorkflow, [FromBody] InputModifyOrder inputModifyOrder)
         {
-            if(_eventService.IsOrderPlaced(orderNumber))
+            if(_eventService.IsOrderPlaced(inputModifyOrder.OrderNumber))
             {
                 return "Order can be modified.";
             }

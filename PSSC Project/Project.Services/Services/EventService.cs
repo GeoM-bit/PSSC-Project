@@ -4,9 +4,9 @@ namespace Project.Services
 {
     public interface IEventService
     {
-        Task<List<string>> HasPlacedOrderEvent();
         void SetPlacedOrderEventReceived(OrderDto _order);
         bool IsOrderPlaced(string orderNumber);
+        public static OrderDto? currentOrder{ get; set; }
 
     }
 
@@ -14,13 +14,11 @@ namespace Project.Services
     {
         private List<string> orderDet = new List<string>();
 
-        public Task<List<string>> HasPlacedOrderEvent()
-        {
-            return Task.FromResult(orderDet);
-        }
+        public static OrderDto currentOrder { get; set; }
 
         public void SetPlacedOrderEventReceived(OrderDto _order)
         {
+            currentOrder = _order;
             orderDet.Add(_order.OrderNumber);
         }
 

@@ -1,7 +1,6 @@
 ﻿using Project.Dto.Events;
 using Project.Events;
 using Project.Events.Models;
-using System.Net.Http;
 using System.Text.Json;
 using System.Text;
 
