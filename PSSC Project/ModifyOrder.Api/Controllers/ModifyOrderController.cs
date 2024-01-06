@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ModifyOrder.Api.Models;
 using Project.Domain.Workflows;
-using Project.Dto.Models;
 using Project.Common.Services;
 using Swashbuckle.AspNetCore.Filters;
+using Project.Domain.Models;
+using Project.Domain.Commands;
+using static Project.Domain.Models.Orders;
+using static Project.Domain.WorkflowEvents.ModifyOrderEvent;
 
 namespace ModifyOrder.Api.Controllers
 {
@@ -33,14 +36,47 @@ namespace ModifyOrder.Api.Controllers
 
         [HttpPost]
         [SwaggerRequestExample(typeof(InputModifyOrder), typeof(InputModifyOrderExample))]
-        public async Task<string> ModifyOrder([FromServices] ModifyOrderWorkflow modifyOrderWorkflow, [FromBody] InputModifyOrder inputModifyOrder)
+        public async Task<IActionResult> ModifyOrder([FromServices] ModifyOrderWorkflow modifyOrderWorkflow, [FromBody] InputModifyOrder inputModifyOrder)
         {
-            if(_eventService.IsOrderPlaced(inputModifyOrder.ModifyOrderNumber))
+            IModifyOrderEvent result = null;
+
+            if (_eventService.IsOrderPlaced(inputModifyOrder.ModifyOrderNumber))
             {
-                return "Order can be modified.";
+                var unvalidatedModifyOrder = MapInputModifyOrderToUnvalidatedOrder(inputModifyOrder);
+                ModifyOrderCommand command = new(unvalidatedModifyOrder);
+                result = await modifyOrderWorkflow.ExecuteAsync(command);
             }
 
-            return "Order can't be modified.";
+
+            return result.Match<IActionResult>(
+                placeOrderSucceededEvent => Ok(),
+                placedOrderFailedEvent => StatusCode(StatusCodes.Status500InternalServerError, placedOrderFailedEvent.Reason)
+                );
+        }
+        private static UnvalidatedOrder MapInputModifyOrderToUnvalidatedOrder(InputModifyOrder inputOrder) => new UnvalidatedOrder(
+            UserRegistrationNumber: inputOrder.ModifyOrderRegistrationNumber,
+            OrderNumber: inputOrder.ModifyOrderNumber,
+            OrderPrice: 0,
+            OrderDeliveryAddress: inputOrder.DeliveryAddress,
+            OrderTelephone: inputOrder.Telephone,
+            CardNumber: inputOrder.CardNumber,
+            CVV: inputOrder.CVV,
+            CardExpiryDate: inputOrder.CardExpiryDate,
+            OrderProducts: MapInputModidyProductsToUnvalidatedProducts(inputOrder.OrderProducts)
+            );
+
+        private static List<UnvalidatedProduct> MapInputModidyProductsToUnvalidatedProducts(List<InputModifyProduct> inputProducts)
+        {
+            List<UnvalidatedProduct> unvalidatedProducts = new List<UnvalidatedProduct>();
+            foreach (var product in inputProducts)
+            {
+                unvalidatedProducts.Add(new UnvalidatedProduct(
+                    ProductName: product.ProductName,
+                    Quantity: product.Quantity
+                    ));
+            }
+
+            return unvalidatedProducts;
         }
     }
 }

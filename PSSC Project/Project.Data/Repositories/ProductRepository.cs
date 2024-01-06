@@ -24,5 +24,27 @@ namespace Project.Data.Repositories
             new ProductQuantity(o.Quantity),
             new ProductPrice(o.Price)))
         .ToList();
+
+        public TryAsync<List<EvaluatedProduct>> TryGetOrderProducts(string orderNumber) => async () => (await (
+                 from order in context.Orders where order.OrderNumber == orderNumber
+                 join orderDetail in context.OrderDetails on order.OrderId equals orderDetail.OrderId
+                 join product in context.Products on orderDetail.ProductId equals product.ProductId
+                 group new { product, orderDetail.Quantity,} by order.OrderId into grouped
+                 select new
+                 {   
+                     ProductName = grouped.Select(x => x.product.ProductName).FirstOrDefault(),
+                     Quantity = grouped.Select(x=> x.Quantity).FirstOrDefault(),
+                     Price = grouped.Select(x => x.product.Price).FirstOrDefault()
+                 })
+                 .AsNoTracking()
+                 .ToListAsync())
+                 .Select(item => new EvaluatedProduct
+                 (
+                    new ProductName(item.ProductName),
+                    new ProductQuantity(item.Quantity),
+                    new ProductPrice(item.Price)
+                 )
+                 )
+                 .ToList(); 
     }
 }

@@ -18,7 +18,39 @@ namespace Project.Data.Repositories
             this.context = context;
         }
 
-        public TryAsync<OrderNumber> TryGetExistentOrder(string orderNumberToCheck) => async () =>
+        public TryAsync<EvaluatedOrder> TryGetExistentOrder(string orderNumberToCheck) => async () => (await (
+                         from order in context.Orders
+                         join orderDetail in context.OrderDetails on order.OrderId equals orderDetail.OrderId
+                         join product in context.Products on orderDetail.ProductId equals product.ProductId
+                         group new { product, orderDetail.Quantity, order.OrderNumber, order.TotalPrice, order.DeliveryAddress, order.Telephone } by order.OrderId into grouped
+                         select new
+                         {
+                             OrderId = grouped.Key,
+                             OrderNumber = grouped.Select(x => x.OrderNumber).FirstOrDefault(),
+                             OrderPrice = grouped.Select(x => x.TotalPrice).FirstOrDefault(),
+                             OrderDeliveryAddress = grouped.Select(x => x.DeliveryAddress).FirstOrDefault(),
+                             OrderTelephone = grouped.Select(x => x.Telephone).FirstOrDefault(),
+                             Products = grouped.Select(item =>
+                             new EvaluatedProduct
+                             (
+                                 new ProductName(item.product.ProductName),
+                                 new ProductQuantity(item.Quantity),
+                                 new ProductPrice(item.product.Price)
+                             ))
+                            .ToList()
+                         })
+                        .AsNoTracking()
+                        .ToListAsync())
+                        .Select(result => new EvaluatedOrder(
+                             new OrderNumber(result.OrderNumber),
+                             new OrderPrice(result.OrderPrice),
+                             new OrderDeliveryAddress(result.OrderDeliveryAddress),
+                             new OrderTelephone(result.OrderTelephone),
+                             new OrderProducts(result.Products)
+                             )
+                         ).ToList().FirstOrDefault(a => a.OrderNumber.Value == orderNumberToCheck);
+
+        public TryAsync<OrderNumber> TryGetExistentOrderNumber(string orderNumberToCheck) => async () =>
         {
             var order = await context.Orders
                                        .FirstOrDefaultAsync(order => order.OrderNumber.Equals(orderNumberToCheck));
@@ -134,5 +166,10 @@ namespace Project.Data.Repositories
 
             return unit;
         };
+
+        public TryAsync<Unit> TryUpdateOrder(ModidyOrders.ValidatedModifiedOrder order)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -13,7 +13,25 @@ namespace Project.Data.Repositories
         {
             this.context = context;
         }
-        public TryAsync<UserRegistrationNumber> TryGetExistingUser(string userToCheck) => async () =>
+
+        public TryAsync<UserDto> TryGetExistingUser(string userNumberToCheck) => async () =>
+        {
+            var users = await context.Users.ToListAsync();
+
+            return users.Select(u =>
+                            new UserDto
+                            {
+                                Balance = u.Balance,
+                                CardExpiryDate = u.CardExpiryDate,
+                                CardNumber = u.CardNumber,
+                                CVV = u.CVV,
+                                FirstName = u.FirstName,
+                                LastName = u.LastName,
+                                UserRegistrationNumber = u.UserRegistrationNumber
+                            }).ToList().FirstOrDefault(x => x.UserRegistrationNumber == userNumberToCheck);
+        };
+
+        public TryAsync<UserRegistrationNumber> TryGetExistingUserRegistrationNumber(string userToCheck) => async () =>
         {
             var user = await context.Users
                                       .FirstOrDefaultAsync(user => user.UserRegistrationNumber.Equals(userToCheck));

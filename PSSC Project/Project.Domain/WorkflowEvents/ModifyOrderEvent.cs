@@ -10,10 +10,10 @@ namespace Project.Domain.WorkflowEvents
 
         public record ModifyOrderSucceededEvent : IModifyOrderEvent
         {
-            public ModifiedOrder Order { get; }
+            public EvaluatedModifiedOrder Order { get; }
             public DateTime OrderModifieddDate { get; }
 
-            internal ModifyOrderSucceededEvent(ModifiedOrder order, DateTime orderModifiedDate)
+            internal ModifyOrderSucceededEvent(EvaluatedModifiedOrder order, DateTime orderModifiedDate)
             {
                 Order = order;
                 OrderModifieddDate = orderModifiedDate;
