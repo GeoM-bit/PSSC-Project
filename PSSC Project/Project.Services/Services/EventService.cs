@@ -1,22 +1,21 @@
 ﻿using Project.Dto.Models;
 
-namespace Project.Services
+namespace Project.Common.Services
 {
     public interface IEventService
     {
-        void SetPlacedOrderEventReceived(OrderDto _order);
+        void SetPlacedOrderEventReceived(ReceivedOrder _order);
         bool IsOrderPlaced(string orderNumber);
-        public static OrderDto? currentOrder{ get; set; }
-
+        public static ReceivedOrder? currentOrder{ get; set; }
     }
 
     public class EventService : IEventService
     {
         private List<string> orderDet = new List<string>();
 
-        public static OrderDto currentOrder { get; set; }
+        public static ReceivedOrder currentOrder { get; set; }
 
-        public void SetPlacedOrderEventReceived(OrderDto _order)
+        public void SetPlacedOrderEventReceived(ReceivedOrder _order)
         {
             currentOrder = _order;
             orderDet.Add(_order.OrderNumber);

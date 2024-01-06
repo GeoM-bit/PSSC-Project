@@ -15,7 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Project.Domain\Project.Domain.csproj" />
     <ProjectReference Include="..\Project.Events.ServiceBus\Project.Events.ServiceBus.csproj" />
-    <ProjectReference Include="..\Project.Services\Project.Services.csproj" />
+    <ProjectReference Include="..\Project.Services\Project.Common.csproj" />
   </ItemGroup>
 
 </Project>

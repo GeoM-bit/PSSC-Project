@@ -23,11 +23,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.Events.ServiceBus",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModifyOrder.Api", "ModifyOrder.Api\ModifyOrder.Api.csproj", "{77AE3A77-E93E-4581-AB42-0877F14850E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Project.EventProcessor", "Project.EventProcessor\Project.EventProcessor.csproj", "{7540D08E-ABC6-46CB-A0FB-807D89784269}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.EventProcessor", "Project.EventProcessor\Project.EventProcessor.csproj", "{7540D08E-ABC6-46CB-A0FB-807D89784269}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Project.AzureMessageHandler", "Project.AzureMessageHandler\Project.AzureMessageHandler.csproj", "{0833DDDB-ED3F-46F3-8FA8-5F9E39755A41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.AzureMessageHandler", "Project.AzureMessageHandler\Project.AzureMessageHandler.csproj", "{0833DDDB-ED3F-46F3-8FA8-5F9E39755A41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Project.Services", "Project.Services\Project.Services.csproj", "{9831F566-B286-44E6-AC3C-7B1833536DC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.Common", "Project.Services\Project.Common.csproj", "{9831F566-B286-44E6-AC3C-7B1833536DC1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

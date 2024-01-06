@@ -1,6 +1,6 @@
 ﻿using Project.Domain.Models;
 using System.ComponentModel.DataAnnotations;
-using static PlaceOrder.Api.Validations.Validations;
+using static Project.Common.Validations.Validations;
 
 namespace PlaceOrder.Api.Models
 {

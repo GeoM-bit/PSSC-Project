@@ -6,7 +6,7 @@ using Project.Domain.Workflows;
 using Project.Events;
 using Project.Events.ServiceBus;
 using Microsoft.Extensions.Azure;
-using Project.Services;
+using Project.Common.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

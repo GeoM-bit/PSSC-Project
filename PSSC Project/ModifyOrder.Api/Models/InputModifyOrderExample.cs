@@ -1,4 +1,4 @@
-﻿using Project.Services;
+﻿using Project.Common.Services;
 using Swashbuckle.AspNetCore.Filters;
 
 namespace ModifyOrder.Api.Models
@@ -9,9 +9,24 @@ namespace ModifyOrder.Api.Models
         {
             return new InputModifyOrder
             {
-                RegistrationNumber = EventService.currentOrder==null? "PSSC123":EventService.currentOrder.UserRgistrationNumber,
-                OrderNumber = EventService.currentOrder == null ? "aha" : EventService.currentOrder.OrderNumber
+                ModifyOrderRegistrationNumber = EventService.currentOrder==null? "empty":EventService.currentOrder.UserRegistrationNumber,
+                ModifyOrderNumber = EventService.currentOrder == null ? "empty" : EventService.currentOrder.OrderNumber,
+                DeliveryAddress = EventService.currentOrder == null ? "empty" : EventService.currentOrder.DeliveryAddress,
+                Telephone = EventService.currentOrder == null ? "empty" : EventService.currentOrder.Telephone,
+                CardNumber = EventService.currentOrder == null || EventService.currentOrder.CardNumber == null ? "empty" : EventService.currentOrder.CardNumber,
+                CVV = EventService.currentOrder == null || EventService.currentOrder.CVV == null ? "empty" : EventService.currentOrder.CVV,
+                CardExpiryDate = EventService.currentOrder == null || EventService.currentOrder.CardExpiryDate == null ? DateTime.MinValue : EventService.currentOrder.CardExpiryDate,
+                OrderProducts = EventService.currentOrder == null ? new List<InputModifyProduct>() : ReceivedProductListToInputModifyProductList(EventService.currentOrder.OrderProducts)
             };        
+        }
+
+        private List<InputModifyProduct> ReceivedProductListToInputModifyProductList(List<ReceivedProduct> received)
+        {
+            return received.Select(x=> new InputModifyProduct
+            (
+                x.ProductName,
+                x.Quantity
+            )).ToList();
         }
     }
 }

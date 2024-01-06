@@ -1,5 +1,6 @@
 ﻿using Project.Domain.Models;
 using System.ComponentModel.DataAnnotations;
+using static Project.Common.Validations.Validations;
 
 namespace ModifyOrder.Api.Models
 {
@@ -7,19 +8,16 @@ namespace ModifyOrder.Api.Models
     {
         [Required]
         [RegularExpression(UserRegistrationNumber.Pattern)]
-
-        public string RegistrationNumber { get; set; }
-
-        [Required]
-        //[RegularExpression(OrderNumber.Pattern)]
-        public string OrderNumber { get; set; } //= EventService.currentOrder.OrderNumber;
+        public string ModifyOrderRegistrationNumber { get; set; }
 
         [Required]
-        public string? DeliveryAddress { get; set; }// = EventService.currentOrder.DeliveryAddress;
+        [RegularExpression(OrderNumber.Pattern)]
+        public string ModifyOrderNumber { get; set; } 
 
-        [Required]
+        public string? DeliveryAddress { get; set; }
+
         [StringLength(10)]
-        public string? Telephone { get; set; } //= EventService.currentOrder.Telephone;
+        public string? Telephone { get; set; } 
 
         [StringLength(16)]
         public string? CardNumber { get; set; } 
@@ -27,10 +25,9 @@ namespace ModifyOrder.Api.Models
         [StringLength(3)]
         public string? CVV { get; set; }
 
-        //[FromNow]
+        [FromNow]
         public DateTime? CardExpiryDate { get; set; }
 
-      //  [Required]
-       // public List<InputProduct>? OrderProducts { get; set; } 
+        public List<InputModifyProduct>? OrderProducts { get; set; } 
     }
 }

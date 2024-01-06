@@ -50,9 +50,8 @@ namespace Project.Domain.Workflows
                          let checkOrderExists = (Func<OrderNumber, Option<OrderNumber>>)(order => CheckOrderExists(orderNumbers, order))
                          let checkProductsExist = (Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>>)(products => CheckProductsExist(existentProducts, products))
                          let checkUserPaymentDetails = (Func<UnvalidatedPlacedOrder, Option<CardDetailsDto>>)(user => CheckUserPaymentDetails(unvalidatedOrder, users))
-                         let updateCardDetails = (Func<CardDetailsDto, Option<CardDetailsDto>>)(card => UpdateCardDetails(card))
                          let checkUserBalance = (Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, CardDetailsDto, Option <UnvalidatedPlacedOrder>>)((unvalidatedOrder, products, cardDetails) => CheckUserBalance(users, unvalidatedOrder, products, cardDetails))
-                         from placedOrder in ExecuteWorkflowAsync(unvalidatedOrder, orderNumbers, checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, updateCardDetails, checkUserBalance).ToAsync()
+                         from placedOrder in ExecuteWorkflowAsync(unvalidatedOrder, orderNumbers, checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, checkUserBalance).ToAsync()
                          from saveResult in orderRepository.TrySaveOrder(placedOrder)
                                      .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
 
@@ -65,6 +64,9 @@ namespace Project.Domain.Workflows
                                  OrderNumber = placedOrder.Order.OrderNumber.Value,
                                  DeliveryAddress = placedOrder.Order.OrderDeliveryAddress.DeliveryAddress,
                                  Telephone = placedOrder.Order.OrderTelephone.Value,
+                                 CardNumber = placedOrder.Order.CardDetails.UserCardNumber.CardNumber,
+                                 CVV = placedOrder.Order.CardDetails.UserCardCVV.Value,
+                                 CardExpiryDate = placedOrder.Order.CardDetails.UserCardExpiryDate.Value,
                                  OrderProducts = placedOrder.Order.OrderProducts.OrderProductsList.Select(
                                      p => new ProductDto()
                                      {
@@ -102,11 +104,10 @@ namespace Project.Domain.Workflows
                                                                              Func<OrderNumber, Option<OrderNumber>> checkOrderExists,
                                                                              Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>> checkProductsExist,
                                                                              Func<UnvalidatedPlacedOrder, Option<CardDetailsDto>> checkUserPaymentDetails,
-                                                                             Func<CardDetailsDto, Option<CardDetailsDto>> updateCardDetails,
                                                                              Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, CardDetailsDto, Option<UnvalidatedPlacedOrder>> checkUserBalance)
         {
             unvalidatedPlacedOrder = GenerateOrderNumber(unvalidatedPlacedOrder, orderNumbers);
-            IOrder order = await ValidatePlacedOrder(checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, updateCardDetails, checkUserBalance, unvalidatedPlacedOrder);
+            IOrder order = await ValidatePlacedOrder(checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, checkUserBalance, unvalidatedPlacedOrder);
 
             order = CalculatePrice(order);
 

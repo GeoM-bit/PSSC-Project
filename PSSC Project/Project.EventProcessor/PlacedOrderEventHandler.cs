@@ -3,6 +3,7 @@ using Project.Events;
 using Project.Events.Models;
 using System.Text.Json;
 using System.Text;
+using Project.Common.Services;
 
 namespace Project.EventProcessor
 {
@@ -16,8 +17,19 @@ namespace Project.EventProcessor
         {
             Console.WriteLine(eventData.ToString());
 
+            var order = new ReceivedOrder
+            {
+                UserRegistrationNumber = eventData.Order.UserRgistrationNumber,
+                OrderNumber = eventData.Order.OrderNumber,
+                DeliveryAddress = eventData.Order.DeliveryAddress,
+                Telephone = eventData.Order.Telephone,
+                CardNumber = eventData.Order.CardNumber,
+                CVV = eventData.Order.CVV,
+                CardExpiryDate = eventData.Order.CardExpiryDate,
+                OrderProducts = eventData.Order.OrderProducts.Select(x=> new ReceivedProduct { ProductName=x.ProductName, Quantity = x.Quantity}).ToList()
+            };
 
-            var jsonEventData = JsonSerializer.Serialize(eventData.Order);
+            var jsonEventData = JsonSerializer.Serialize(order);
             var apiUrl = "https://localhost:7040/ModifyOrder/ReceiveEvent";
             var content = new StringContent(jsonEventData, Encoding.UTF8, "application/json");
             await _httpClient.PostAsync(apiUrl, content);

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Project.Services;
+using Project.Common.Services;
 using Project.Events;
 using Project.Events.ServiceBus;
 

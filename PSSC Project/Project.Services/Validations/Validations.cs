@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PlaceOrder.Api.Validations
+namespace Project.Common.Validations
 {
     public class Validations
     {
