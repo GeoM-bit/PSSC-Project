@@ -12,6 +12,6 @@ namespace Project.Domain.Repositories
         TryAsync<EvaluatedOrder> TryGetExistentOrder(string orderNumberToCheck);
         TryAsync<List<OrderNumber>> TryGetExistentOrderNumbers();
         TryAsync<Unit> TrySaveOrder(ValidatedOrder order);
-        TryAsync<Unit> TryUpdateOrder(ValidatedModifiedOrder order);
+        TryAsync<Unit> TryUpdateOrder(ValidatedModifiedOrder order, EvaluatedOrder initialOrder);
     }
 }

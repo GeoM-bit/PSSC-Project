@@ -9,9 +9,9 @@ namespace Project.Domain.Models
     {
         public const string RegexPattern = "^[a-zA-Z]+$";
         private static readonly Regex validPattern = new(RegexPattern);
-        public string DeliveryAddress {  get;}
+        public string? DeliveryAddress {  get;}
 
-        public OrderDeliveryAddress(string deliveryAddress)
+        public OrderDeliveryAddress(string? deliveryAddress)
         {
             if(IsValid(deliveryAddress)) 
             {
@@ -23,7 +23,7 @@ namespace Project.Domain.Models
             }
         }
 
-        private static bool IsValid(string value) => validPattern.IsMatch(value);
+        private static bool IsValid(string? value) => value == null || validPattern.IsMatch(value);
 
         public override string ToString()
         {

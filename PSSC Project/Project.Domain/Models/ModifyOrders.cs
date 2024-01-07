@@ -46,16 +46,5 @@ namespace Project.Domain.Models
 
             public EvaluatedModifiedOrder Order { get; }
         }
-
-        //public record ModifiedOrder : IModifyOrder
-        //{
-        //    internal ModifiedOrder(EvaluatedModifiedOrder order, DateTime ModifiedOrderDate)
-        //    {
-        //        Order = order;
-        //        Date = ModifiedOrderDate;
-        //    }
-        //    public EvaluatedModifiedOrder Order { get; }
-        //    public DateTime Date { get; }
-        //}
     }
 }

@@ -1,6 +1,7 @@
 ﻿using LanguageExt;
 using Project.Domain.Models;
 using static Project.Domain.Models.ModidyOrders;
+using static Project.Domain.Models.Orders;
 
 namespace Project.Domain.Operations
 {
@@ -10,7 +11,7 @@ namespace Project.Domain.Operations
                                                                             EvaluatedOrder order,
                                                                             Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>> checkProductsExist,
                                                                             Func<UnvalidatedModifiedOrder, Option<CardDetailsDto>> checkUserPaymentDetails,
-                                                                            Func<UnvalidatedModifiedOrder, CardDetailsDto, Option<UnvalidatedModifiedOrder>> checkUserBalance) =>
+                                                                            Func<UnvalidatedModifiedOrder, List<EvaluatedProduct>, CardDetailsDto, Option<UnvalidatedModifiedOrder>> checkUserBalance) =>
           ValidateOrder(unvalidatedModifiedOrder, order, checkProductsExist, checkUserPaymentDetails, checkUserBalance)
            .MatchAsync(
               Right: validatedModifiedOrder => new ValidatedModifiedOrder(validatedModifiedOrder),
@@ -21,12 +22,12 @@ namespace Project.Domain.Operations
                                                                             EvaluatedOrder order,
                                                                             Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>> checkProductsExist,
                                                                             Func<UnvalidatedModifiedOrder, Option<CardDetailsDto>> checkUserPaymentDetails,
-                                                                            Func<UnvalidatedModifiedOrder, CardDetailsDto, Option<UnvalidatedModifiedOrder>> checkUserBalance) =>           
+                                                                            Func<UnvalidatedModifiedOrder, List<EvaluatedProduct>, CardDetailsDto, Option<UnvalidatedModifiedOrder>> checkUserBalance) =>           
             from productsExist in checkProductsExist(unvalidatedModifiedOrder.Order.OrderProducts)
                                     .ToEitherAsync($"Invalid product list for order ({unvalidatedModifiedOrder.Order}).")
             from checkedUserPaymentDetails in checkUserPaymentDetails(unvalidatedModifiedOrder)
                                     .ToEitherAsync("Invalid or missing payment details.")
-            from checkedBalance in checkUserBalance(unvalidatedModifiedOrder, checkedUserPaymentDetails)
+            from checkedBalance in checkUserBalance(unvalidatedModifiedOrder, productsExist, checkedUserPaymentDetails)
                                     .ToEitherAsync($"Insufficient funds for paying order ({unvalidatedModifiedOrder.Order}).")
             select new EvaluatedModifiedOrder(order.OrderNumber, new OrderPrice(0), new OrderDeliveryAddress(unvalidatedModifiedOrder.Order.OrderDeliveryAddress), new OrderTelephone(unvalidatedModifiedOrder.Order.OrderTelephone), new OrderProducts(productsExist))
             {
@@ -39,5 +40,26 @@ namespace Project.Domain.Operations
                     checkedUserPaymentDetails.ToUpdate
                     )
             };
+        public static IModifyOrder CalculatePrice(IModifyOrder order) => order.Match(
+           unvalidatedModifiedOrder => unvalidatedModifiedOrder,
+               invalidModifiedOrder => invalidModifiedOrder,
+               failedModifiedOrder => failedModifiedOrder,
+               validatedModifiedOrder =>
+               {
+                   return new ValidatedModifiedOrder(
+                       new EvaluatedModifiedOrder(
+                            validatedModifiedOrder.Order.OrderNumber,
+                            new OrderPrice(validatedModifiedOrder.Order.OrderProducts.OrderProductsList.Sum(p => p.Price.Price * p.Quantity.Quantity)),
+                            validatedModifiedOrder.Order.OrderDeliveryAddress,
+                            validatedModifiedOrder.Order.OrderTelephone,
+                            validatedModifiedOrder.Order.OrderProducts
+                            )
+                       {
+                           UserRegistrationNumber = validatedModifiedOrder.Order.UserRegistrationNumber,
+                           CardDetails = validatedModifiedOrder.Order.CardDetails
+                       }
+                       );
+               }
+           );
     }
 }

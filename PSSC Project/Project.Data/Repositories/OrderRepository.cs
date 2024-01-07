@@ -6,6 +6,7 @@ using Project.Domain.Repositories;
 using static Project.Domain.Models.Orders;
 using static LanguageExt.Prelude;
 using Microsoft.EntityFrameworkCore.Storage;
+using static Project.Domain.Models.ModidyOrders;
 
 namespace Project.Data.Repositories
 {
@@ -167,9 +168,78 @@ namespace Project.Data.Repositories
             return unit;
         };
 
-        public TryAsync<Unit> TryUpdateOrder(ModidyOrders.ValidatedModifiedOrder order)
+        public TryAsync<Unit> TryUpdateOrder(ValidatedModifiedOrder orderToUpdate, EvaluatedOrder initialOrder) => async () =>
         {
-            throw new NotImplementedException();
-        }
+            using (IDbContextTransaction transaction = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var user = await context.Users.FirstOrDefaultAsync(u => u.UserRegistrationNumber == orderToUpdate.Order.UserRegistrationNumber.Value);
+
+                    if (orderToUpdate.Order.CardDetails.ToUpdate)
+                    {
+                        user.Balance = orderToUpdate.Order.CardDetails.UserCardBalance.Value + initialOrder.OrderPrice.Price - orderToUpdate.Order.OrderPrice.Price;
+                        user.CVV = orderToUpdate.Order.CardDetails.UserCardCVV.Value;
+                        user.CardNumber = orderToUpdate.Order.CardDetails.UserCardNumber.CardNumber;
+                        user.CardExpiryDate = orderToUpdate.Order.CardDetails.UserCardExpiryDate.Value;
+                    }
+                    else
+                    {
+                        user.Balance = user.Balance + initialOrder.OrderPrice.Price - orderToUpdate.Order.OrderPrice.Price;
+                    }
+
+                    var ord = await context.Orders.FirstOrDefaultAsync(x => x.OrderNumber == initialOrder.OrderNumber.Value);
+
+                    ord.TotalPrice = orderToUpdate.Order.OrderPrice.Price;
+                    ord.DeliveryAddress = orderToUpdate.Order.OrderDeliveryAddress.DeliveryAddress;
+                    ord.Telephone = orderToUpdate.Order.OrderTelephone.Value;
+
+                    var res = context.Orders.Update(ord);
+                    await context.SaveChangesAsync();
+
+                    var savedOrder = await context.Orders.OrderBy(o => o.OrderId).LastOrDefaultAsync();
+
+
+                    var productsToUpdate = context.Products.AsEnumerable()
+                                                  .Where(prod => orderToUpdate.Order.OrderProducts.OrderProductsList.Any(p => p.ProductName.Name == prod.ProductName)
+                                                              || initialOrder.OrderProducts.OrderProductsList.Any(p => p.ProductName.Name == prod.ProductName)).ToList();
+                    var initialOrderDetails = await context.OrderDetails.Where(x => x.OrderId == savedOrder.OrderId).ToListAsync();
+                        foreach (var prod in productsToUpdate)
+                        {
+                        var initialOrderProd = initialOrder.OrderProducts.OrderProductsList.FirstOrDefault(x => x.ProductName.Name == prod.ProductName);
+                        var modifiedOrderProd = orderToUpdate.Order.OrderProducts.OrderProductsList.FirstOrDefault(x => x.ProductName.Name == prod.ProductName);
+                        var initialQuantity = initialOrderProd == null ? 0 : initialOrderProd.Quantity.Quantity;
+                        var modifiedQuantity = modifiedOrderProd == null ? 0 : modifiedOrderProd.Quantity.Quantity;
+
+                        prod.Quantity = prod.Quantity + initialQuantity - modifiedQuantity;                           
+                        }
+
+                        foreach (var item in initialOrderDetails)
+                        {
+                            context.OrderDetails.Remove(item);
+                        }
+
+                        orderToUpdate.Order.OrderProducts.OrderProductsList.ForEach(p =>
+                           context.OrderDetails.Add(new OrderDetails()
+                           {
+                               OrderId = savedOrder.OrderId,
+                               ProductId = context.Products.AsEnumerable().Where(prod => prod.ProductName == p.ProductName.Name).Select(prod => prod.ProductId).FirstOrDefault(),
+                               Quantity = p.Quantity.Quantity
+                           }
+                           )
+                           );
+
+                    await context.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine("Error occurred.");
+                }
+            }
+
+            return unit;
+        };
     }
 }

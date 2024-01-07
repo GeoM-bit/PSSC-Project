@@ -256,15 +256,6 @@ namespace Project.Domain.Workflows
             }
             return None;
         }
-        private Option<CardDetailsDto> UpdateCardDetails(CardDetailsDto cardDetailsDto)
-        {
-            if(cardDetailsDto.ToUpdate)
-            {
-                userRepository.UpdateCardDetails(cardDetailsDto);
-            }
-            
-            return Some(cardDetailsDto);
-        }
     }
 }
 
