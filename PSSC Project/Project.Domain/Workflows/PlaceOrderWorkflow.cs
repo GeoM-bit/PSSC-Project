@@ -233,6 +233,11 @@ namespace Project.Domain.Workflows
                         {
                             return Some(new CardDetailsDto() 
                             {
+                                UserRegistrationNumber = user.UserRegistrationNumber,
+                                CardNumber = user.CardNumber,
+                                CVV = user.CVV,
+                                CardExpiryDate = user.CardExpiryDate,
+                                Balance = user.Balance,
                                 ToUpdate = false});
                         }
                     }

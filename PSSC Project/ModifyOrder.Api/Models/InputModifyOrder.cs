@@ -28,6 +28,7 @@ namespace ModifyOrder.Api.Models
         [FromNow]
         public DateTime? CardExpiryDate { get; set; }
 
+        [Required]
         public List<InputModifyProduct>? OrderProducts { get; set; } 
     }
 }
