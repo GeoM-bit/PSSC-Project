@@ -2,6 +2,7 @@
 using Project.Domain.Models;
 using static Project.Domain.Models.ModidyOrders;
 using static Project.Domain.Models.Orders;
+using static Project.Domain.Models.ReturnOrders;
 
 namespace Project.Domain.Repositories
 {
@@ -13,5 +14,7 @@ namespace Project.Domain.Repositories
         TryAsync<List<OrderNumber>> TryGetExistentOrderNumbers();
         TryAsync<Unit> TrySaveOrder(ValidatedOrder order);
         TryAsync<Unit> TryUpdateOrder(ValidatedModifiedOrder order, EvaluatedOrder initialOrder);
+        TryAsync<Unit> TryRemoveOrder(ValidatedReturnOrders order);
+
     }
 }
