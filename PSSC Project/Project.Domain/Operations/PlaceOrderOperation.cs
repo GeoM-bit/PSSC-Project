@@ -10,24 +10,18 @@ namespace Project.Domain.Operations
                                                  Func<OrderNumber, Option<OrderNumber>> checkOrderExists,
                                                  Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>> checkProductsExist,
                                                  Func<UnvalidatedPlacedOrder, Option<CardDetailsDto>> checkUserPaymentDetails,
-                                                 Func<CardDetailsDto, Option<CardDetailsDto>> updateCardDetails,
                                                  Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, CardDetailsDto, Option<UnvalidatedPlacedOrder>> checkUserBalance,
                                                  UnvalidatedPlacedOrder order) =>
-           ValidateOrder(checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, updateCardDetails, checkUserBalance, order)
+           ValidateOrder(checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, checkUserBalance, order)
             .MatchAsync(
                Right: validatedOrder => new ValidatedOrder(validatedOrder),
                LeftAsync: errorMessage => Task.FromResult((IOrder)new InvalidOrder(order.Order, errorMessage))
                );
-               
-                    
-        private static Func<UnvalidatedPlacedOrder, EitherAsync<string, EvaluatedOrder>> ValidateOrder(Func<UserRegistrationNumber, Option<UserRegistrationNumber>> checkUserExists, Func<OrderNumber, Option<OrderNumber>> checkOrderExists, Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>> checkProductsExist, Func<UnvalidatedPlacedOrder, Option<CardDetailsDto>> checkUserPaymentDetails, Func<CardDetailsDto, Option<CardDetailsDto>> updateCardDetails, Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, CardDetailsDto, Option<UnvalidatedPlacedOrder>> checkUserBalance) =>
-            unvalidatedOrder => ValidateOrder(checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, updateCardDetails, checkUserBalance, unvalidatedOrder);
 
         private static EitherAsync<string, EvaluatedOrder> ValidateOrder(Func<UserRegistrationNumber, Option<UserRegistrationNumber>> checkUserExists,
                                                  Func<OrderNumber, Option<OrderNumber>> checkOrderExists,
                                                  Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>> checkProductsExist,
                                                  Func<UnvalidatedPlacedOrder, Option<CardDetailsDto>> checkUserPaymentDetails,
-                                                 Func<CardDetailsDto, Option<CardDetailsDto>> updateCardDetails,
                                                  Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, CardDetailsDto, Option<UnvalidatedPlacedOrder>> checkUserBalance,
                                                  UnvalidatedPlacedOrder unvalidatedOrder) =>
             from userRegistrationNumber in UserRegistrationNumber.TryParse(unvalidatedOrder.Order.UserRegistrationNumber)
@@ -44,7 +38,6 @@ namespace Project.Domain.Operations
                                     .ToEitherAsync($"Invalid telephone number ({unvalidatedOrder.Order.OrderTelephone})")
             from checkedUserPaymentDetails in checkUserPaymentDetails(unvalidatedOrder)
                                     .ToEitherAsync("Invalid or missing payment details.")
-           // let res = updateCardDetails(checkedUserPaymentDetails)
             from checkedBalance in checkUserBalance(unvalidatedOrder, productsExist, checkedUserPaymentDetails)
                                     .ToEitherAsync($"Insufficient funds for paying order ({unvalidatedOrder.Order}).")
             select new EvaluatedOrder(orderNumber, new OrderPrice(0), new OrderDeliveryAddress(unvalidatedOrder.Order.OrderDeliveryAddress), new OrderTelephone(unvalidatedOrder.Order.OrderTelephone), new OrderProducts(productsExist)) 
@@ -57,9 +50,7 @@ namespace Project.Domain.Operations
                     new UserCardBalance(checkedUserPaymentDetails.Balance),
                     checkedUserPaymentDetails.ToUpdate
                     )
-            };
-
-        
+            };     
 
         public static IOrder CalculatePrice(IOrder order) => order.Match(
            unvalidatedPlacedOrder => unvalidatedPlacedOrder,

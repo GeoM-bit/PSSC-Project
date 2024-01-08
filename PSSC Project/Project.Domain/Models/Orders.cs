@@ -5,7 +5,6 @@ namespace Project.Domain.Models
     [AsChoice]
     public static partial class Orders
     {
-
         public interface IOrder { }
 
         public record UnvalidatedPlacedOrder : IOrder

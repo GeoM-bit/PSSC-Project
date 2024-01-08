@@ -1,7 +1,7 @@
 ﻿using LanguageExt;
-using Project.Domain.Exceptions;
-using System.Text.RegularExpressions;
 using static LanguageExt.Prelude;
+using System.Text.RegularExpressions;
+using Project.Domain.Exceptions;
 
 namespace Project.Domain.Models
 {

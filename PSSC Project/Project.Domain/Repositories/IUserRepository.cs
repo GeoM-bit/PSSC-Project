@@ -5,9 +5,10 @@ namespace Project.Domain.Repositories
 {
     public interface IUserRepository
     {
-        TryAsync<UserRegistrationNumber> TryGetExistingUser(string userToCheck);
+        TryAsync<UserRegistrationNumber> TryGetExistingUserRegistrationNumber(string userToCheck);
         TryAsync<List<UserRegistrationNumber>> TryGetExistingUserRegistrationNumbers();
         TryAsync<List<UserDto>> TryGetExistingUsers();
+        TryAsync<UserDto> TryGetExistingUser(string userNumberToCheck);
         TryAsync<bool> UpdateCardDetails(CardDetailsDto cardDetailsDto);
     }
 }

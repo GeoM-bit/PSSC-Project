@@ -25,13 +25,13 @@ namespace Project.Domain.Workflows
         private readonly ILogger<PlaceOrderWorkflow> logger;
         private readonly IEventSender eventSender;
 
-        public PlaceOrderWorkflow(IOrderRepository orderRepository, IUserRepository userRepository, IProductRepository productRepository, ILogger<PlaceOrderWorkflow> logger)//, IEventSender eventSender)
+        public PlaceOrderWorkflow(IOrderRepository orderRepository, IUserRepository userRepository, IProductRepository productRepository, ILogger<PlaceOrderWorkflow> logger, IEventSender eventSender)
         {
             this.orderRepository = orderRepository;
             this.userRepository = userRepository;
             this.productRepository = productRepository;
             this.logger = logger;
-           // this.eventSender = eventSender;
+            this.eventSender = eventSender;
         }
       
         public async Task<IPlaceOrderEvent> ExecuteAsync(PlaceOrderCommand command)
@@ -50,9 +50,8 @@ namespace Project.Domain.Workflows
                          let checkOrderExists = (Func<OrderNumber, Option<OrderNumber>>)(order => CheckOrderExists(orderNumbers, order))
                          let checkProductsExist = (Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>>)(products => CheckProductsExist(existentProducts, products))
                          let checkUserPaymentDetails = (Func<UnvalidatedPlacedOrder, Option<CardDetailsDto>>)(user => CheckUserPaymentDetails(unvalidatedOrder, users))
-                         let updateCardDetails = (Func<CardDetailsDto, Option<CardDetailsDto>>)(card => UpdateCardDetails(card))
                          let checkUserBalance = (Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, CardDetailsDto, Option <UnvalidatedPlacedOrder>>)((unvalidatedOrder, products, cardDetails) => CheckUserBalance(users, unvalidatedOrder, products, cardDetails))
-                         from placedOrder in ExecuteWorkflowAsync(unvalidatedOrder, orderNumbers, checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, updateCardDetails, checkUserBalance).ToAsync()
+                         from placedOrder in ExecuteWorkflowAsync(unvalidatedOrder, orderNumbers, checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, checkUserBalance).ToAsync()
                          from saveResult in orderRepository.TrySaveOrder(placedOrder)
                                      .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
 
@@ -65,6 +64,9 @@ namespace Project.Domain.Workflows
                                  OrderNumber = placedOrder.Order.OrderNumber.Value,
                                  DeliveryAddress = placedOrder.Order.OrderDeliveryAddress.DeliveryAddress,
                                  Telephone = placedOrder.Order.OrderTelephone.Value,
+                                 CardNumber = placedOrder.Order.CardDetails.UserCardNumber.CardNumber,
+                                 CVV = placedOrder.Order.CardDetails.UserCardCVV.Value,
+                                 CardExpiryDate = placedOrder.Order.CardDetails.UserCardExpiryDate.Value,
                                  OrderProducts = placedOrder.Order.OrderProducts.OrderProductsList.Select(
                                      p => new ProductDto()
                                      {
@@ -74,8 +76,8 @@ namespace Project.Domain.Workflows
                                      ).ToList()
                              }
                          }
-                         //from publicEventResult in eventSender.SendAsync("order", eventToPublish)
-                         //                   .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
+                         from publicEventResult in eventSender.SendAsync("order", eventToPublish)
+                                            .ToEither(ex => new FailedOrder(unvalidatedOrder.Order, ex) as IOrder)
                          select successfulEvent;
                                     
             return await result.Match(
@@ -102,11 +104,10 @@ namespace Project.Domain.Workflows
                                                                              Func<OrderNumber, Option<OrderNumber>> checkOrderExists,
                                                                              Func<List<UnvalidatedProduct>, Option<List<EvaluatedProduct>>> checkProductsExist,
                                                                              Func<UnvalidatedPlacedOrder, Option<CardDetailsDto>> checkUserPaymentDetails,
-                                                                             Func<CardDetailsDto, Option<CardDetailsDto>> updateCardDetails,
                                                                              Func<UnvalidatedPlacedOrder, IEnumerable<EvaluatedProduct>, CardDetailsDto, Option<UnvalidatedPlacedOrder>> checkUserBalance)
         {
             unvalidatedPlacedOrder = GenerateOrderNumber(unvalidatedPlacedOrder, orderNumbers);
-            IOrder order = await ValidatePlacedOrder(checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, updateCardDetails, checkUserBalance, unvalidatedPlacedOrder);
+            IOrder order = await ValidatePlacedOrder(checkUserExists, checkOrderExists, checkProductsExist, checkUserPaymentDetails, checkUserBalance, unvalidatedPlacedOrder);
 
             order = CalculatePrice(order);
 
@@ -230,9 +231,16 @@ namespace Project.Domain.Workflows
                     {
                         if ((new Regex("[0-9]{16}")).IsMatch(user.CardNumber) && user.CVV.ToString().Length == 3 && user.CardExpiryDate > DateTime.Now)
                         {
-                            return Some(new CardDetailsDto() 
+                            return Some(new CardDetailsDto()
                             {
-                                ToUpdate = false});
+                                UserRegistrationNumber = user.UserRegistrationNumber,
+                                CardNumber = user.CardNumber,
+                                CVV = user.CVV,
+                                CardExpiryDate = user.CardExpiryDate,
+                                Balance = user.Balance,
+                                ToUpdate = false
+                            });
+                        
                         }
                     }
                 }
@@ -254,15 +262,6 @@ namespace Project.Domain.Workflows
                 }
             }
             return None;
-        }
-        private Option<CardDetailsDto> UpdateCardDetails(CardDetailsDto cardDetailsDto)
-        {
-            if(cardDetailsDto.ToUpdate)
-            {
-                userRepository.UpdateCardDetails(cardDetailsDto);
-            }
-            
-            return Some(cardDetailsDto);
         }
     }
 }
