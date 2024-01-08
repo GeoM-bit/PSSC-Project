@@ -7,8 +7,8 @@ namespace Project.Events.ServiceBus
 {
     public class ServiceBusTopicEventListener : IEventListener
     {
-        private const string TopicName = "order";
-        private const string SubscriptionName = "order-operation";
+        //private const string TopicName = "order";
+        //private const string SubscriptionName = "order-operation";
         private ServiceBusProcessor? processor;
         private readonly ServiceBusClient client;
         private readonly Dictionary<string, IEventHandler> eventHandlers;

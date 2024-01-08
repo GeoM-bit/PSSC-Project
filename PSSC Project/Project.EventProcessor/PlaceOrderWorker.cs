@@ -3,24 +3,24 @@ using Project.Events;
 
 namespace Project.EventProcessor
 {
-    internal class Worker : IHostedService
+    internal class PlaceOrderWorker : IHostedService
     {
         private readonly IEventListener eventListener;
 
-        public Worker(IEventListener eventListener)
+        public PlaceOrderWorker(IEventListener eventListener)
         {
             this.eventListener = eventListener;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("Worker started...");
+            Console.WriteLine("Place order worker started...");
             return eventListener.StartAsync("order", "order-operation", cancellationToken);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("Worker stoped!");
+            Console.WriteLine("Place order worker stoped!");
             return eventListener.StopAsync(cancellationToken);
         }
     }

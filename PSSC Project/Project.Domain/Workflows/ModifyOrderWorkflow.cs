@@ -73,8 +73,8 @@ namespace Project.Domain.Workflows
                                  ).ToList()
                              }
                          }
-                         //from publicEventResult in eventSender.SendAsync("modifyOrder", eventToPublish)
-                         //                   .ToEither(ex => new FailedOrder(unvalidatedModifiedOrder.Order, ex) as IModifyOrder)
+                         from publicEventResult in eventSender.SendAsync("order", eventToPublish)
+                                            .ToEither(ex => new FailedModifiedOrder(unvalidatedModifiedOrder.Order, ex) as IModifyOrder)
                          select successfulEvent;
 
             return await result.Match(
@@ -140,34 +140,36 @@ namespace Project.Domain.Workflows
         {
             if (unvalidatedModifiedOrder.Order.CardNumber == null && unvalidatedModifiedOrder.Order.CVV == null && unvalidatedModifiedOrder.Order.CardExpiryDate == null)
             {
-                if (user != null)
-                {
-                    if (user.CardNumber != null && user.CVV != null && user.CardExpiryDate != null && user.Balance != null)
-                    {
-                        if ((new Regex("[0-9]{16}")).IsMatch(user.CardNumber) && user.CVV.ToString().Length == 3 && user.CardExpiryDate > DateTime.Now)
-                        {
-                            return Some(new CardDetailsDto()
-                            {
-                                ToUpdate = false
-                            });
-                        }
-                    }
-                }
+                return None;
             }
             else if (unvalidatedModifiedOrder.Order.CardNumber != null && unvalidatedModifiedOrder.Order.CVV != null && unvalidatedModifiedOrder.Order.CardExpiryDate != null)
             {
                 if ((new Regex("[0-9]{16}")).IsMatch(unvalidatedModifiedOrder.Order.CardNumber) && unvalidatedModifiedOrder.Order.CVV.ToString().Length == 3 && unvalidatedModifiedOrder.Order.CardExpiryDate > DateTime.Now)
                 {
-
-                    return Some(new CardDetailsDto()
+                    if (unvalidatedModifiedOrder.Order.CardNumber != user.CardNumber && unvalidatedModifiedOrder.Order.CVV != user.CVV && unvalidatedModifiedOrder.Order.CardExpiryDate != user.CardExpiryDate)
                     {
-                        UserRegistrationNumber = unvalidatedModifiedOrder.Order.UserRegistrationNumber,
-                        CardNumber = unvalidatedModifiedOrder.Order.CardNumber,
-                        CVV = unvalidatedModifiedOrder.Order.CVV,
-                        CardExpiryDate = unvalidatedModifiedOrder.Order.CardExpiryDate,
-                        Balance = new Random().NextDouble() * (7000 - 1000) + 1000,
-                        ToUpdate = true
-                    });
+                        return Some(new CardDetailsDto()
+                        {
+                            UserRegistrationNumber = unvalidatedModifiedOrder.Order.UserRegistrationNumber,
+                            CardNumber = unvalidatedModifiedOrder.Order.CardNumber,
+                            CVV = unvalidatedModifiedOrder.Order.CVV,
+                            CardExpiryDate = unvalidatedModifiedOrder.Order.CardExpiryDate,
+                            Balance = new Random().NextDouble() * (7000 - 1000) + 1000,
+                            ToUpdate = true
+                        });
+                    }
+                    else
+                    {
+                        return Some(new CardDetailsDto()
+                        {
+                            UserRegistrationNumber = user.UserRegistrationNumber,
+                            CardNumber = user.CardNumber,
+                            CVV = user.CVV,
+                            CardExpiryDate = user.CardExpiryDate,
+                            Balance = user.Balance,
+                            ToUpdate = false
+                        });
+                    }
                 }
             }
             return None;

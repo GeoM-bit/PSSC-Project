@@ -26,9 +26,10 @@ namespace Project.EventProcessor
 
                         services.AddSingleton<IEventListener, ServiceBusTopicEventListener>();
                         services.AddSingleton<IEventHandler, PlacedOrderEventHandler>();
+                        services.AddSingleton<IEventHandler, ModifiedOrderEventHandler>();
 
-                        services.AddHostedService<Worker>();
-
+                        services.AddHostedService<PlaceOrderWorker>();
+                        services.AddHostedService<ModifyOrderWorker>();
                     });
     }
 }

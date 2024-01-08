@@ -29,6 +29,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.AzureMessageHandler
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Project.Common", "Project.Services\Project.Common.csproj", "{9831F566-B286-44E6-AC3C-7B1833536DC1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Project.ReturnOrder", "Project.ReturnOrder\Project.ReturnOrder.csproj", "{5CC7CAD6-7B1A-4229-A91A-4968EC75B523}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{9831F566-B286-44E6-AC3C-7B1833536DC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9831F566-B286-44E6-AC3C-7B1833536DC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9831F566-B286-44E6-AC3C-7B1833536DC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CC7CAD6-7B1A-4229-A91A-4968EC75B523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CC7CAD6-7B1A-4229-A91A-4968EC75B523}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CC7CAD6-7B1A-4229-A91A-4968EC75B523}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CC7CAD6-7B1A-4229-A91A-4968EC75B523}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
