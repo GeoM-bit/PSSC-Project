@@ -4,6 +4,7 @@ using Project.Events.Models;
 using System.Text.Json;
 using System.Text;
 using Project.Common.Services;
+using Project.Domain.Models;
 
 namespace Project.EventProcessor
 {
@@ -33,6 +34,17 @@ namespace Project.EventProcessor
             var apiUrl = "https://localhost:7040/ModifyOrder/ReceiveEvent";
             var content = new StringContent(jsonEventData, Encoding.UTF8, "application/json");
             await _httpClient.PostAsync(apiUrl, content);
+
+            var orderToRetun = new ReturnOrderData
+            {
+                UserRegistrationNumber = eventData.Order.UserRgistrationNumber,
+                OrderNumber = eventData.Order.OrderNumber
+            };
+
+            var jsonReturnEventData = JsonSerializer.Serialize(orderToRetun);
+            var returnApiUrl = "https://localhost:7160/ReturnOrder/ReceiverReturnEvent";
+            var returnOrderContent = new StringContent(jsonReturnEventData, Encoding.UTF8, "application/json");
+            await _httpClient.PostAsync(returnApiUrl, returnOrderContent);
 
             return EventProcessingResult.Completed;
         }

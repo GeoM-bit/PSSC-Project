@@ -28,7 +28,7 @@ namespace Project.Domain.Operations
             from userExists in checkUserExists(userRegistrationNumber)
                                     .ToEitherAsync($"User ({unvalidatedReturnOrder.Order.UserRegistrationNumber} does not exists).")
             from orderExists in checkOrderExists(orderNumber)
-                                    .ToEitherAsync($"Order with order number ({unvalidatedReturnOrder.Order.OrderNumber}) already exists.")
+                                    .ToEitherAsync($"Order with order number ({unvalidatedReturnOrder.Order.OrderNumber}) does not exist.")
             select new EvaluatedReturnOrder(userRegistrationNumber , orderNumber);
     }
 }

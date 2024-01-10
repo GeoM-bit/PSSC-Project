@@ -5,11 +5,11 @@ namespace Project.ReturnOrder.Models
     public class ReturnOrderInput
     {
         [Required]
-        [RegularExpression("^ORD[0-9]{6}$")]
-        public string InputOrderNumber { get; set; }
+        [RegularExpression("^PSSC[0-9]{3}$")]
+        public string OrderNumber { get; set; }
 
         [Required]
-        [RegularExpression("^USER[0-9]{7}$")]
+        [RegularExpression("^PSSC[0-9]{3}$")]
         public string UserRegistrationNumber { get; set; }
     }
 }
