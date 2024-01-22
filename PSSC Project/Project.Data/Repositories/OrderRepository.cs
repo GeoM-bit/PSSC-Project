@@ -241,5 +241,43 @@ namespace Project.Data.Repositories
 
             return unit;
         };
+        public TryAsync<Unit> TryRemoveOrder(ReturnOrders.ValidatedReturnOrders order) => async () =>
+        {
+
+            using (IDbContextTransaction transaction = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var user = await context.Users.FirstOrDefaultAsync(u => u.UserRegistrationNumber == order.Order.UserRegistrationNumber.Value);
+                    var orderToReturn = await context.Orders.FirstOrDefaultAsync(x => x.OrderNumber == order.Order.OrderNumber.Value && x.UserId == user.UserId);
+
+                    user.Balance = user.Balance + orderToReturn.TotalPrice;
+
+                    var productsToReturn = context.OrderDetails.AsEnumerable().Where(x => x.OrderId == orderToReturn.OrderId).ToList();
+
+                    foreach (var item in productsToReturn)
+                    {
+                        context.OrderDetails.Remove(item);
+                    }
+
+                    foreach (var item in productsToReturn)
+                    {
+                        var product = await context.Products.FirstOrDefaultAsync(x => x.ProductId == item.ProductId);
+                        product.Quantity += item.Quantity;
+                    }
+
+                    context.Orders.Remove(orderToReturn);
+
+                    await context.SaveChangesAsync();
+                    transaction.Commit();
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    Console.WriteLine("Error occurred.");
+                }
+            }
+            return unit;
+        };
     }
 }
